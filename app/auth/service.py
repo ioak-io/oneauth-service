@@ -1,115 +1,89 @@
 import os, datetime, time
 from pymongo import MongoClient
 import secrets, jwt
-from library.db_connection_factory import get_collection
 import library.db_utils as db_utils
+from Crypto.Hash import SHA256
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+from base64 import b64encode, b64decode
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Random import get_random_bytes
 
 DATABASE_URI = os.environ.get('DATABASE_URI')
 
 domain="user"
-
-def generate_keys():
-    return (200, {
-        'salt': secrets.token_hex(40),
-        'solution': secrets.token_hex(40)
-    })
-
-def get_keys(space, email):
-    user = get_collection(space, 'user').find_one({'email': email})
-    #user = db_utils.find(space,domain,{'email': email})
-    if user is None:
-        return (404, {})
-    else:
-        return (200, {'problem': user.get('problem')})
+domain_session="session"
 
 def do_signup(space, data):
-    print(data)
-    #user = get_collection(space, 'user').insert_one(data)
+    solution = secrets.token_hex(80)
+    data['solution'] = solution
+    cipher_data = encrypt(solution, data['password'])
+    data['iv'] = b64encode(cipher_data[0]).decode()
+    data['salt'] = cipher_data[1]
+    data['cipher'] = b64encode(cipher_data[2]).decode()
+    data['hash'] = hash(solution)
+    del data['password']
+    print(space, domain, data)
     user = db_utils.upsert(space, domain, data)
-    #return (200, {'_id': str(user.inserted_id)})
     return (200, {'_id': user})
 
-def do_signin(space, data):
-    user = get_collection(space, 'user').find_one({'email': data.get('email')})
-    #user = db_utils.find(space, domain, {'email': data.get('email')})
-    #response = {'content': {}}
-    if user is None:
+def do_authorize(space, data):
+    user_list = db_utils.find(space, domain, {'email': data.get('email')})
+    if len(user_list) == 0:
         return (404, {})
-    elif user.get('solution') != data.get('solution'):
-        return (401, {})
-    elif user.get('solution') == data.get('solution'):
-        return (200, {
-            'name': user.get('name'),
-            'email': user.get('email'),
-            'token': jwt.encode({
-                'userId': str(user.get('_id')),
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=8)
-                }, 'jwtsecret').decode('utf-8'),
-            'space': space,
-            'secret': 'none'
-        })
-
-def do_jwttest(space):
-    space=get_collection('appnamehere', 'space').find_one({'name': space})
-    #space = db_utils.find(space, domain,{'name': space})
-    jwtPassword = space.get('jwtPassword')
-    return (200, jwt.encode({
-            'userId': '4587439657496t',
-            'name': 'test user display name',
-            'email': 'q1@1.com',
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=8)
-        }, jwtPassword, algorithm='HS256').decode('utf-8'))
-
-def do_signin_via_jwt(space, data):
-    spaceData=get_collection('appnamehere', 'space').find_one({'name': space})
-    #spaceData = db_utils.find(space, domain, {'name': space})
-    jwtPassword = spaceData.get('jwtPassword')
-    jwtToken = data.get('jwtToken')
-    tokenData = jwt.decode(jwtToken, jwtPassword, algorithm='HS256')
-    user = get_collection(space, 'user').find_one({'email': tokenData.get('email')})
-    #user = db_utils.find(space, domain,{'email': tokenData.get('email')})
-    if user is None:
-        """ get_collection(space, 'user').insert_one({
-            'name': tokenData.get('name'),
-            'email': tokenData.get('email'),
-            'type': 'JWT_USER'
-        }) """
-        db_utils.upsert(space, domain,{
-            'name': tokenData.get('name'),
-            'email': tokenData.get('email'),
-            'type': 'JWT_USER'
-        })
     else:
-        """ get_collection(space, 'user').update({'_id': user.get('_id')},
-        {
-            'name': tokenData.get('name'),
-            'email': tokenData.get('email'),
-            'type': 'JWT_USER'
-        }, upsert=True) """
-        db_utils.upsert(space, domain, {
-            {'_id': user.get('_id')},
-            {
-                'name': tokenData.get('name'),
-                'email': tokenData.get('email'),
-                'type': 'JWT_USER'
-            }
-        })
-    
-    user = get_collection(space, 'user').find_one({'email': tokenData.get('email')})
-    #user = db_utils.find(space, user, {'email': tokenData.get('email')})
-    return (200, {
-        'name': user.get('name'),
-        'email': user.get('email'),
-        'token': jwt.encode({
-                'name': str(user.get('_id')),
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=8)
-            }, jwtPassword, algorithm='HS256').decode('utf-8'),
-        'space': space,
-        'secret': 'none'
-    })
+        user = user_list[0]
+        try:
+            decoded_text = decrypt(user['cipher'], user['salt'], data['password'], user['iv'])
+        except:
+            return (401, {'data': 'unauthorized'})
+        if hash(decoded_text) == user['hash']:
+            session_list = db_utils.find(space, domain_session, {'userId': user['_id']})
+            if len(session_list) == 0:
+                auth_key = secrets.token_hex(40)
+                db_utils.upsert(space, domain_session, {
+                    'key': auth_key,
+                    'token': jwt.encode({
+                        'userId': str(user.get('_id')),
+                        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=8)
+                        }, 'jwtsecret').decode('utf-8'),
+                    'userId': user['_id']
+                })
+            else:
+                auth_key = session_list[0]['key']
+            return (200, {'auth_key': auth_key})
+        else:
+            return (401, {'data': 'unauthorized'})
 
-    # print(jwt.decode(en, 'secret', algorithms=['HS256']))
-    # time.sleep(10)
-    # print(jwt.decode(en, 'secret', algorithms=['HS256'], verify=False))
-    # print(jwt.decode(en, 'secret', algorithms=['HS256']))
-    # return jwt.encode({'some': 'payload', 'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=30)}, 'secret', algorithm='HS256')
+def get_session_token(space, auth_key):
+    session_list = db_utils.find(space, domain_session, {'key': auth_key})
+    if len(session_list) == 0:
+        return (404, {'data': 'not found'})
+    else:
+        session = session_list[0]
+        user = db_utils.find(space, domain, {'_id': session['userId']})[0]
+        return (200, {
+            'token': session['token']
+        })
+
+def encrypt(text, password):
+    salt = secrets.token_hex(80)
+    iv = get_random_bytes(16)
+    key = PBKDF2(password, salt, dkLen=32)    
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    ciphered_data = cipher.encrypt(pad(text.encode(), 16))
+    decrypt_direct(ciphered_data, salt, password, iv)
+    return (iv, salt, ciphered_data)
+
+def decrypt(cipher_text, salt, password, iv):
+    return decrypt_direct(b64decode(cipher_text.encode()), salt, password, b64decode(iv.encode()))
+
+def decrypt_direct(cipher_text, salt, password, iv):
+    key = PBKDF2(password, salt, dkLen=32)    
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    padded_data = cipher.decrypt(cipher_text)
+    encoded_data = unpad(padded_data, 16)
+    return encoded_data.decode()
+
+def hash(text):
+    return b64encode(SHA256.new(text.encode()).digest()).decode()

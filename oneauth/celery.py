@@ -1,10 +1,10 @@
 from celery import Celery
 import os
-import appnamehere.settings as settings
+import oneauth.settings as settings
 
 # Setting the Default Django settings module
-os.environ.setdefault('DJANGO_SETTINGS_MODULE','appnamehere.settings')
-app=Celery('appnamehere')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE','oneauth.settings')
+app=Celery('oneauth')
 
 # Using a String here means the worker will always find the configuration information
 app.config_from_object('django.conf:settings')

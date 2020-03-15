@@ -4,6 +4,6 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns =[
-    path('create', views.create),
-    path('<str:space>', views.get_space)
+    path('', views.get_update_app),
+    path('<str:app_id>', views.find_by_app_id)
 ]
