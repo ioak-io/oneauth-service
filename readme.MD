@@ -11,7 +11,7 @@
 ## Every time
 
 - workon <environment name> (eg: workon local)
-- python manage.py runserver
+- python manage.py runserver 8020
 
 ## Procfile Honcho for celery
 
