@@ -20,7 +20,7 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    path('admin/<str:space>/', admin.site.urls),
+    path('admin/<str:space_id>/', admin.site.urls),
     path('auth/', include('app.auth.urls')),
     path('app/', include('app.app.urls')),
     path('space/', include('app.space.urls'))

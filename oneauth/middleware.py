@@ -9,7 +9,7 @@ class JWTAuthenticationMiddleware(MiddlewareMixin):
         if JWTAuthenticationMiddleware.is_json(request.body):
             request._body = json.loads(request.body)
 
-        if (request.method == 'OPTIONS') | request.path.startswith('/auth') | request.path.startswith('/space/create') | request.path.startswith('/space/banner'):
+        if (request.method == 'OPTIONS') | request.path.startswith('/auth') | request.path.startswith('/space_id/create') | request.path.startswith('/space_id/banner'):
             return
 
         try:

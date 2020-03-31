@@ -5,5 +5,5 @@ from . import views
 
 urlpatterns =[
     path('create', views.create),
-    path('<str:space>', views.get_space)
+    path('<str:space_id>', views.get_space)
 ]

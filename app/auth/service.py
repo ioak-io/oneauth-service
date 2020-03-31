@@ -14,7 +14,7 @@ DATABASE_URI = os.environ.get('DATABASE_URI')
 domain="user"
 domain_session="session"
 
-def do_signup(space, data):
+def do_signup(space_id, data):
     solution = secrets.token_hex(80)
     data['solution'] = solution
     cipher_data = encrypt(solution, data['password'])
@@ -23,12 +23,12 @@ def do_signup(space, data):
     data['cipher'] = b64encode(cipher_data[2]).decode()
     data['hash'] = hash(solution)
     del data['password']
-    print(space, domain, data)
-    user = db_utils.upsert(space, domain, data)
+    print(space_id, domain, data)
+    user = db_utils.upsert(space_id, domain, data)
     return (200, {'_id': user})
 
-def do_authorize(space, data):
-    user_list = db_utils.find(space, domain, {'email': data.get('email')})
+def do_authorize(space_id, data):
+    user_list = db_utils.find(space_id, domain, {'email': data.get('email')})
     if len(user_list) == 0:
         return (404, {})
     else:
@@ -38,10 +38,10 @@ def do_authorize(space, data):
         except:
             return (401, {'data': 'unauthorized'})
         if hash(decoded_text) == user['hash']:
-            session_list = db_utils.find(space, domain_session, {'userId': user['_id']})
+            session_list = db_utils.find(space_id, domain_session, {'userId': user['_id']})
             if len(session_list) == 0:
                 auth_key = secrets.token_hex(40)
-                db_utils.upsert(space, domain_session, {
+                db_utils.upsert(space_id, domain_session, {
                     'key': auth_key,
                     'token': jwt.encode({
                         'userId': str(user.get('_id')),
@@ -55,13 +55,13 @@ def do_authorize(space, data):
         else:
             return (401, {'data': 'unauthorized'})
 
-def get_session_token(space, auth_key):
-    session_list = db_utils.find(space, domain_session, {'key': auth_key})
+def get_session_token(space_id, auth_key):
+    session_list = db_utils.find(space_id, domain_session, {'key': auth_key})
     if len(session_list) == 0:
         return (404, {'data': 'not found'})
     else:
         session = session_list[0]
-        user = db_utils.find(space, domain, {'_id': session['userId']})[0]
+        user = db_utils.find(space_id, domain, {'_id': session['userId']})[0]
         return (200, {
             'token': session['token']
         })
