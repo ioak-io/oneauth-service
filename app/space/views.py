@@ -4,12 +4,10 @@ from django.core import serializers
 from app.space.service import do_create, do_get_space, do_update_space
 from app.auth.service import do_signup
 import json, base64
-import uuid
 
 @api_view(['POST'])
 def create(request):
     response = do_create({
-        '_id': uuid.uuid4().hex[:5],
         'name': request.body.get('name'),
         'email': request.body.get('email')
     })
