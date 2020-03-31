@@ -8,11 +8,22 @@ from bson.binary import Binary
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 import app.sequence.service as sequence_service
+import app.role.service as role_service
+from bson.objectid import ObjectId
 
 DATABASE_URI = os.environ.get('DATABASE_URI')
 
 domain = 'space'
 database_name = 'oneauth'
+
+def find(request):
+    roles = role_service.get_roles(request.user_id)
+    authorized_space_id_list = []
+    for role in roles:
+        if role['type'] == 'space':
+            authorized_space_id_list.append(ObjectId(role['domainId']))
+    data = db_utils.find(database_name, domain, {'_id': {'$in': authorized_space_id_list}})
+    return (200, {'data': data})
 
 def do_get_space(space_id):
     spaceData = get_collection(database_name,domain).find_one({'spaceId': space_id})

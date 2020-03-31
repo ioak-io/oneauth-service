@@ -23,5 +23,6 @@ urlpatterns = [
     path('admin/<str:space_id>/', admin.site.urls),
     path('auth/', include('app.auth.urls')),
     path('app/', include('app.app.urls')),
-    path('space/', include('app.space.urls'))
+    path('space/', include('app.space.urls')),
+    path('role/', include('app.role.urls'))
 ]

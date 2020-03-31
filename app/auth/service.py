@@ -23,9 +23,8 @@ def do_signup(space_id, data):
     data['cipher'] = b64encode(cipher_data[2]).decode()
     data['hash'] = hash(solution)
     del data['password']
-    print(space_id, domain, data)
     user = db_utils.upsert(space_id, domain, data)
-    return (200, {'_id': user})
+    return (200, {'data': user})
 
 def do_authorize(space_id, data):
     user_list = db_utils.find(space_id, domain, {'email': data.get('email')})

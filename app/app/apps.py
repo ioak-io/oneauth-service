@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class SpaceConfig(AppConfig):
-    name = 'space'
+class AppLocalConfig(AppConfig):
+    name = 'app'
