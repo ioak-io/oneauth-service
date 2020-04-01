@@ -40,10 +40,13 @@ def do_authorize(space_id, data):
             session_list = db_utils.find(space_id, domain_session, {'userId': user['_id']})
             if len(session_list) == 0:
                 auth_key = secrets.token_hex(40)
+                print(user)
                 db_utils.upsert(space_id, domain_session, {
                     'key': auth_key,
                     'token': jwt.encode({
                         'userId': str(user.get('_id')),
+                        'name': user.get('name'),
+                        'email': user.get('email'),
                         'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=8)
                         }, 'jwtsecret').decode('utf-8'),
                     'userId': user['_id']
