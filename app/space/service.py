@@ -25,12 +25,16 @@ def find(request):
     data = db_utils.find(database_name, domain, {'_id': {'$in': authorized_space_id_list}})
     return (200, {'data': data})
 
-def do_get_space(space_id):
+def find_by_space_id(space_id):
     spaceData = get_collection(database_name,domain).find_one({'spaceId': space_id})
     spaceData['_id'] = str(spaceData['_id'])
     return (200, spaceData)
 
-def update_space(data):
+def update(request, space_id, data):
+    updated_record = db_utils.upsert(space_id, domain, data, request.user_id)
+    return (200, {'data': updated_record})
+
+def create(data):
     spaceData = []
     if 'spaceId' in data:
         spaceData = db_utils.find(database_name,domain, {'spaceId': data['spaceId']})

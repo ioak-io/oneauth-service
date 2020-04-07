@@ -8,6 +8,7 @@ from Crypto.Util.Padding import pad, unpad
 from base64 import b64encode, b64decode
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
+import library.jwt_utils as jwt_utils
 
 DATABASE_URI = os.environ.get('DATABASE_URI')
 
@@ -45,7 +46,8 @@ def do_authorize(space_id, data):
                     'key': auth_key,
                     'token': jwt.encode({
                         'userId': str(user.get('_id')),
-                        'name': user.get('name'),
+                        'firstName': user.get('firstName'),
+                        'lastName': user.get('lastName'),
                         'email': user.get('email'),
                         'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=8)
                         }, 'jwtsecret').decode('utf-8'),
@@ -63,10 +65,19 @@ def get_session_token(space_id, auth_key):
         return (404, {'data': 'not found'})
     else:
         session = session_list[0]
-        user = db_utils.find(space_id, domain, {'_id': session['userId']})[0]
         return (200, {
             'token': session['token']
         })
+
+def get_session(space_id, auth_key):
+    session_list = db_utils.find(space_id, domain_session, {'key': auth_key})
+    if len(session_list) == 0:
+        return (404, {'data': 'not found'})
+    else:
+        session = session_list[0]
+        content = jwt_utils.decode(session['token'])
+        content['token'] = session['token']
+        return (200, content)
 
 def encrypt(text, password):
     salt = secrets.token_hex(80)
