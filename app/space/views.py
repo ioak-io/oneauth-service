@@ -18,7 +18,7 @@ def get_update(request):
         response = service.update(request, self_space, request.body)
         return JsonResponse(response[1], status=response[0])
     if request.method == 'POST':
-        space_response = service.update_space({
+        space_response = service.create({
             'name': request.body.get('name'),
             'email': request.body.get('email')
         })
