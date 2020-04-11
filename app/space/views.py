@@ -9,7 +9,7 @@ import json, base64
 
 self_space='oneauth'
 
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'POST', 'PUT'])
 def get_update(request):
     if request.method == 'GET':
         response = service.find(request)
