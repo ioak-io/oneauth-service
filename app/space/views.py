@@ -44,3 +44,8 @@ def get_update(request):
 def get_space(request, space_id):
     response = service.find_by_space_id(space_id)
     return JsonResponse(response[1], status=response[0])
+
+@api_view(['DELETE'])
+def delete_space(request, space_id):
+    response = service.do_delete_space(space_id)
+    return JsonResponse(response[1], status=response[0])

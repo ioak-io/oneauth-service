@@ -14,7 +14,8 @@ domain = 'role'
 database_name='oneauth'
 
 def do_get_roles(request):
-    data = get_roles(request.user_id)
+    # data = get_roles(request.user_id)
+    data = db_utils.find(database_name, domain, {})
     return (200, {'data': data})
 
 def get_roles(user_id):
@@ -32,6 +33,7 @@ def add_role(data, user_id):
         return existing_record[0]
 
 def delete_role(request, type_name, user_id, domain_id):
+    print(type_name, user_id , domain_id)
     out = db_utils.delete(database_name, domain, {'type': type_name, 'userId': user_id, 'domainId': domain_id})
     print(out.deleted_count)
     return (200, {'data': out.deleted_count})

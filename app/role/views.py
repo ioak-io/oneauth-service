@@ -4,12 +4,12 @@ from django.core import serializers
 import app.role.service as service
 import json, base64
 
-@api_view(['GET', 'POST'])
+@api_view(['GET', 'PUT'])
 def add_get_roles(request):
     if request.method == 'GET':
         response = service.do_get_roles(request)
         return JsonResponse(response[1], status=response[0])
-    if request.method == 'POST':
+    if request.method == 'PUT':
         response = service.do_add_role(request, request.body)
         return JsonResponse(response[1], status=response[0])
 

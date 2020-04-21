@@ -47,3 +47,16 @@ def create(data):
         data['spaceId'] = 'oa' + str(sequence_service.nextval('oneauth', 'spaceId', 'na'))
         updated_record = db_utils.upsert(database_name, domain, data)
     return (200, {'data': updated_record})
+
+
+def do_delete_space(space_id):
+    spaceData = db_utils.find(database_name, domain, {'spaceId': space_id})
+    print(spaceData)
+    domain_id = []
+    for data in spaceData:
+        domain_id = data['_id']
+    print(domain_id)
+    roleData = db_utils.delete(database_name, 'role', {'domainId': domain_id})
+    deleteSpace = db_utils.delete(database_name, space_id,{})
+    deleteSpaceData = db_utils.delete(database_name, domain,{'spaceId': space_id})
+    return (200, {'deletedData': ''})

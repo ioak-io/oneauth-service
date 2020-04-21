@@ -100,3 +100,7 @@ def decrypt_direct(cipher_text, salt, password, iv):
 
 def hash(text):
     return b64encode(SHA256.new(text.encode()).digest()).decode()
+
+def get_all_users(request):
+    data = db_utils.find('oneauth' , domain, {})
+    return ('200', {'data': data})

@@ -10,4 +10,5 @@ urlpatterns = [
     path('signup', oa_views.signup),
     path('authorize', oa_views.authorize),
     path('session/<str:auth_key>', oa_views.get_session_token),
+    path('', space_views.get_all_users),
 ]
