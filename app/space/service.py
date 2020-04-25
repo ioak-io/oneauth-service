@@ -51,11 +51,9 @@ def create(data):
 
 def do_delete_space(space_id):
     spaceData = db_utils.find(database_name, domain, {'spaceId': space_id})
-    print(spaceData)
     domain_id = []
     for data in spaceData:
         domain_id = data['_id']
-    print(domain_id)
     roleData = db_utils.delete(database_name, 'role', {'domainId': domain_id})
     deleteSpace = db_utils.delete(database_name, space_id,{})
     deleteSpaceData = db_utils.delete(database_name, domain,{'spaceId': space_id})

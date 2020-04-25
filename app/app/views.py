@@ -33,3 +33,8 @@ def get_update_app(request):
 def find_by_app_id(request, app_id):
     response = service.find_by_app_id(request, app_id)
     return JsonResponse(response[1], status=response[0])
+
+@api_view(['DELETE'])
+def delete_app(request, app_id):
+    response = service.do_delete_app(app_id)
+    return JsonResponse(response[1], status=response[0])

@@ -38,3 +38,13 @@ def find_by_app_id(request, app_id):
         return (200, {'data': data[0]})
     else:
         return (404, {'data': 'not found'})
+
+def do_delete_app(app_id):
+    appData = db_utils.find(database_name, domain, {'appId': app_id})
+    domain_id = []
+    for data in appData:
+        domain_id = data['_id']
+    roleData = db_utils.delete(database_name, 'role', {'domainId': domain_id})
+    deleteApp = db_utils.delete(database_name, app_id,{})
+    deleteAppData = db_utils.delete(database_name, domain,{'appId': app_id})
+    return (200, {'deletedData': ''})
