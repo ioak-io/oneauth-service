@@ -37,7 +37,7 @@ def update(request, space_id, data):
 def create(data):
     spaceData = []
     if 'spaceId' in data:
-        spaceData = db_utils.find(database_name,domain, {'spaceId': data['spaceId']})
+        spaceData = db_utils.find(database_name, domain, {'spaceId': data['spaceId']})
     if len(spaceData) == 1:
         existingSpace = spaceData[0]
         existingSpace['name'] = data['name']
