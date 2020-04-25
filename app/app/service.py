@@ -6,6 +6,8 @@ import base64
 from bson.binary import Binary
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+import app.role.service as role_service
+from bson.objectid import ObjectId
 import secrets
 
 DATABASE_URI = os.environ.get('DATABASE_URI')
@@ -14,7 +16,12 @@ domain = 'app'
 database_name='oneauth'
 
 def find(request):
-    data = db_utils.find(database_name, domain, {})
+    roles = role_service.get_roles(request.user_id)
+    authorized_app_id_list = []
+    for role in roles:
+        if role['type'] == 'app':
+            authorized_app_id_list.append(ObjectId(role['domainId']))
+    data = db_utils.find(database_name, domain, {'_id': {'$in': authorized_app_id_list}})
     return (200, {'data': data})
 
 def update(request, data):
@@ -31,3 +38,13 @@ def find_by_app_id(request, app_id):
         return (200, {'data': data[0]})
     else:
         return (404, {'data': 'not found'})
+
+def do_delete_app(app_id):
+    appData = db_utils.find(database_name, domain, {'appId': app_id})
+    domain_id = []
+    for data in appData:
+        domain_id = data['_id']
+    roleData = db_utils.delete(database_name, 'role', {'domainId': domain_id})
+    deleteApp = db_utils.delete(database_name, app_id,{})
+    deleteAppData = db_utils.delete(database_name, domain,{'appId': app_id})
+    return (200, {'deletedData': ''})

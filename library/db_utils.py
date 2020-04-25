@@ -6,8 +6,11 @@ from datetime import datetime
 
 DATABASE_URI = os.environ.get('DATABASE_URI')
 
-def find(space, collection_name, search_criteria, user_id = None):
-    data = get_collection(space, collection_name).find(declean_object(search_criteria))
+def find(space, collection_name, search_criteria, sort = None, user_id = None):
+    if sort is None:
+        data = get_collection(space, collection_name).find(declean_object(search_criteria))
+    else:
+        data = get_collection(space, collection_name).find(declean_object(search_criteria)).sort(sort)
     data = list(data)
     data = clean_array(data)
     return data
@@ -16,15 +19,18 @@ def upsert(space, collection_name, data, user_id = None):
     now = datetime.now()
     data['lastModifiedBy'] = user_id
     data['lastModifiedAt'] = now
-    if data.get('id') is None:
+    if data.get('id') is None and data.get('_id') is None:
         data['createdBy'] = user_id
         data['createdAt'] = now
         response = get_collection(space, collection_name).insert_one(data)
         record = get_collection(space, collection_name).find_one({'_id': response.inserted_id})
         return clean_object(record)
     else:
-        data['_id'] = ObjectId(data.get('id'))
-        del data['id']
+        if data.get('id') is None:
+            data['_id'] = ObjectId(data.get('_id'))
+        else:
+            data['_id'] = ObjectId(data.get('id'))
+            del data['id']
         updated_record = get_collection(space, collection_name).find_one_and_update(
             { '_id' : data.get('_id') },
             { '$set': data },
@@ -50,7 +56,7 @@ def clean_array(data):
     return data
 
 def declean_object(data):
-    if data is not None and data.get('_id') is not None and type(data.get('_id')) != ObjectId:
+    if data is not None and data.get('_id') is not None and type(data.get('_id')) not in [ObjectId, dict]:
         data['_id'] = ObjectId(data.get('_id'))
     return data
 
