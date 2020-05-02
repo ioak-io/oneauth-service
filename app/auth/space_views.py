@@ -16,7 +16,7 @@ def authorize(request, space_id):
 
 @api_view(['GET'])
 def get_session_token(request, space_id, auth_key):
-    response = service.get_session_token(space_id, auth_key)
+    response = service.get_session(space_id, auth_key)
     return JsonResponse(response[1], status=response[0])
 
 @api_view(['GET'])

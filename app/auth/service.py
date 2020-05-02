@@ -76,8 +76,12 @@ def get_session(space_id, auth_key):
     else:
         session = session_list[0]
         content = jwt_utils.decode(session['token'])
-        content['token'] = session['token']
-        return (200, content)
+        if content == None:
+            return (401, {'data': 'session expired'})
+        else:
+            content['token'] = session['token']
+            print(content)
+            return (200, content)
 
 def encrypt(text, password):
     salt = secrets.token_hex(80)
