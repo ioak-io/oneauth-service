@@ -26,10 +26,10 @@ def find_by_space_id(request, space_id):
     return JsonResponse(response[1], status=response[0])
 
 @api_view(['GET', 'DELETE'])
-def find_delete_by_id(request, id):
+def find_delete_by_id(request, space_id, app_id):
     if request.method == 'GET':
-        response = service.find_by_id(request, id)
+        response = service.find_by_id(request, app_id)
         return JsonResponse(response[1], status=response[0])
     if request.method == 'DELETE':
-        response = service.delete_by_id(id)
+        response = service.delete_by_id(space_id, app_id)
         return JsonResponse(response[1], status=response[0])
