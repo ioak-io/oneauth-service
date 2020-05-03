@@ -48,6 +48,6 @@ def find_by_space_id(request, space_id):
     else:
         return (404, {'data': 'not found'})
 
-def delete_by_id(id):
-    out = db_utils.delete(database_name, domain, {'_id': id})
+def delete_by_id(space_id, app_id):
+    out = db_utils.delete(database_name, domain, {'spaceId': space_id, 'appId': app_id})
     return (200, {'deleted_count': out.deleted_count})

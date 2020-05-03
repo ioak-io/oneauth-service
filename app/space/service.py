@@ -31,6 +31,7 @@ def find_by_space_id(space_id):
     return (200, spaceData)
 
 def update(request, space_id, data):
+    print(data)
     updated_record = db_utils.upsert(space_id, domain, data, request.user_id)
     return (200, {'data': updated_record})
 
