@@ -38,23 +38,22 @@ def do_authorize(space_id, data):
         except:
             return (401, {'data': 'unauthorized'})
         if hash(decoded_text) == user['hash']:
-            session_list = db_utils.find(space_id, domain_session, {'userId': user['_id']})
-            if len(session_list) == 0:
-                auth_key = secrets.token_hex(40)
-                print(user)
-                db_utils.upsert(space_id, domain_session, {
-                    'key': auth_key,
-                    'token': jwt.encode({
-                        'userId': str(user.get('_id')),
-                        'firstName': user.get('firstName'),
-                        'lastName': user.get('lastName'),
-                        'email': user.get('email'),
-                        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=8)
-                        }, 'jwtsecret').decode('utf-8'),
-                    'userId': user['_id']
-                })
-            else:
-                auth_key = session_list[0]['key']
+            # session_list = db_utils.find(space_id, domain_session, {'userId': user['_id']})
+            # if len(session_list) == 0:
+            auth_key = secrets.token_hex(40)
+            db_utils.upsert(space_id, domain_session, {
+                'key': auth_key,
+                'token': jwt.encode({
+                    'userId': str(user.get('_id')),
+                    'firstName': user.get('firstName'),
+                    'lastName': user.get('lastName'),
+                    'email': user.get('email'),
+                    'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=8)
+                    }, 'jwtsecret').decode('utf-8'),
+                'userId': user['_id']
+            })
+            # else:
+            #     auth_key = session_list[0]['key']
             return (200, {'auth_key': auth_key})
         else:
             return (401, {'data': 'unauthorized'})
@@ -82,6 +81,13 @@ def get_session(space_id, auth_key):
             content['token'] = session['token']
             print(content)
             return (200, content)
+
+def invalidate_session_token(space_id, auth_key):
+    result = db_utils.delete(space_id, domain_session, {'key': auth_key})
+    if result.deleted_count > 0:
+        return (200, {'data': 'session invalidated'})
+    else:
+        return (404, {'data': 'no matching session'})
 
 def encrypt(text, password):
     salt = secrets.token_hex(80)

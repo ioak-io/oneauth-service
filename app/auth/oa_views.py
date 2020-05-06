@@ -20,3 +20,8 @@ def authorize(request):
 def get_session_token(request, auth_key):
     response = service.get_session(self_space, auth_key)
     return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
+def invalidate_session_token(request, auth_key):
+    response = service.invalidate_session_token(self_space, auth_key)
+    return JsonResponse(response[1], status=response[0])
