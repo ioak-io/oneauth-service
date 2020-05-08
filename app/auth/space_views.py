@@ -10,6 +10,26 @@ def signup(request, space_id):
     return JsonResponse(response[1], status=response[0])
 
 @api_view(['POST'])
+def change_password(request, space_id):
+    response = service.change_password(space_id, request.body, request.user_id)
+    return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
+def reset_password_link(request, space_id):
+    response = service.reset_password_link(space_id, request.body)
+    return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
+def verify_password_link(request, space_id, auth_code):
+    response = service.verify_password_link(space_id, auth_code)
+    return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
+def reset_password(request, space_id, auth_code):
+    response = service.reset_password(space_id, auth_code, request.body)
+    return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
 def authorize(request, space_id):
     response = service.do_authorize(space_id, request.body)
     return JsonResponse(response[1], status=response[0])
