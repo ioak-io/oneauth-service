@@ -20,7 +20,8 @@ def get_update(request):
     if request.method == 'POST':
         space_response = service.create({
             'name': request.body.get('name'),
-            'email': request.body.get('email')
+            'email': request.body.get('email'),
+            'sessionExpiry': request.body.get('sessionExpiry')
         })
         if space_response[0] == 200:
             created_space = space_response[1]['data']

@@ -31,6 +31,7 @@ def find_by_space_id(space_id):
     return (200, spaceData)
 
 def update(request, space_id, data):
+    print(data)
     updated_record = db_utils.upsert(space_id, domain, data, request.user_id)
     return (200, {'data': updated_record})
 
@@ -42,6 +43,7 @@ def create(data):
         existingSpace = spaceData[0]
         existingSpace['name'] = data['name']
         existingSpace['email'] = data['email']
+        existingSpace['sessionExpiry'] = data['sessionExpiry']
         updated_record = db_utils.upsert(database_name, domain, existingSpace)
     else:
         data['spaceId'] = 'oa' + str(sequence_service.nextval('oneauth', 'spaceId', 'na'))
@@ -55,6 +57,6 @@ def do_delete_space(space_id):
     for data in spaceData:
         domain_id = data['_id']
     roleData = db_utils.delete(database_name, 'role', {'domainId': domain_id})
-    deleteSpace = db_utils.delete(database_name, space_id,{})
+    deleteSpace = db_utils.delete(database_name,space_id,{'spaceId':space_id})
     deleteSpaceData = db_utils.delete(database_name, domain,{'spaceId': space_id})
     return (200, {'deletedData': ''})

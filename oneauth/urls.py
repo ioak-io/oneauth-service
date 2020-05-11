@@ -24,5 +24,6 @@ urlpatterns = [
     path('auth/', include('app.auth.urls')),
     path('app/', include('app.app.urls')),
     path('space/', include('app.space.urls')),
+    path('appspace/', include('app.app_space.urls')),
     path('role/', include('app.role.urls'))
 ]

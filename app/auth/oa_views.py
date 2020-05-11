@@ -12,6 +12,26 @@ def signup(request):
     return JsonResponse(response[1], status=response[0])
 
 @api_view(['POST'])
+def change_password(request):
+    response = service.change_password(self_space, request.body, request.user_id)
+    return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
+def reset_password_link(request):
+    response = service.reset_password_link(self_space, request.body)
+    return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
+def verify_password_link(request, auth_code):
+    response = service.verify_password_link(self_space, auth_code)
+    return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
+def reset_password(request, auth_code):
+    response = service.reset_password(self_space, auth_code, request.body)
+    return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
 def authorize(request):
     response = service.do_authorize(self_space, request.body)
     return JsonResponse(response[1], status=response[0])
@@ -19,4 +39,9 @@ def authorize(request):
 @api_view(['GET'])
 def get_session_token(request, auth_key):
     response = service.get_session(self_space, auth_key)
+    return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
+def invalidate_session_token(request, auth_key):
+    response = service.invalidate_session_token(self_space, auth_key)
     return JsonResponse(response[1], status=response[0])
