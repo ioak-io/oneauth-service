@@ -28,6 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'oneauth-service.herokuapp.com',
+    'janus-service.herokuapp.com',
     'localhost',
     '127.0.0.1'
 ]
