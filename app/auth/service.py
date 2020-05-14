@@ -9,6 +9,7 @@ from base64 import b64encode, b64decode
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 import library.jwt_utils as jwt_utils
+import library.mail_utils as mail_utils
 
 DATABASE_URI = os.environ.get('DATABASE_URI')
 
@@ -59,7 +60,8 @@ def reset_password_link(space_id, data):
         return (404, {'data': 'user does not exist'})
     else:
         db_utils.delete(space_id, domain_passwordresetcode, {'userId': user_record[0]['_id']})
-        db_utils.upsert(space_id, domain_passwordresetcode, {'userId': user_record[0]['_id']})
+        updated_record = db_utils.upsert(space_id, domain_passwordresetcode, {'userId': user_record[0]['_id']})
+        mail_utils.send_mail(data['email'], "test mail", "https://oneauth.ioak.org/#/login?type=reset&auth=" + updated_record['_id'])
         return (200, {'data': 'password reset link sent'})
 
 def verify_password_link(space_id, auth_code):
