@@ -9,7 +9,7 @@ def compose_message(template_name, arg):
         template = record[0]['value']
         message = template
         for key in arg:
-            message = template.replace(key, arg[key])
+            message = message.replace(key, arg[key])
         return message
     else:
         return ''

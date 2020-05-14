@@ -25,6 +25,16 @@ def verify_password_link(request, space_id, auth_code):
     return JsonResponse(response[1], status=response[0])
 
 @api_view(['POST'])
+def email_confirmation_link(request, space_id):
+    response = service.email_confirmation_link(space_id, request.body)
+    return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
+def verify_email_confirmation_link(request, space_id, auth_code):
+    response = service.verify_email_confirmation_link(space_id, auth_code)
+    return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
 def reset_password(request, space_id, auth_code):
     response = service.reset_password(space_id, auth_code, request.body)
     return JsonResponse(response[1], status=response[0])
