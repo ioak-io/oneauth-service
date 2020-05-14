@@ -7,7 +7,7 @@ port = 465
 sender_email = 'no-reply@dev.ioak.org'
 password = "PDXC9MLzgfrVnk6"
 domain = b'dev.ioak.org'
-dkim_selector = 'mail'
+dkim_selector = b'email'
 dkim_private_key_path = "library/dkimkey.pem"
 
 def send_mail_bkp(to, subject, body):
@@ -38,9 +38,10 @@ def send_mail_bkp(to, subject, body):
 
 def send_mail(to, subject, body):
     sender_domain = sender_email.split("@")[-1]
-    msg = MIMEMultipart("alternative")
-    msg.attach(MIMEText("message_text", "plain"))
+    # msg = MIMEMultipart("alternative")
+    msg = MIMEMultipart()
     msg.attach(MIMEText(body, "html"))
+    msg.attach(MIMEText(body, "plain"))
     msg["To"] = to
     msg["From"] = sender_email
     msg["Subject"] = subject
@@ -51,12 +52,15 @@ def send_mail(to, subject, body):
         headers=[b'From', b'To', b'Subject']
         sig = dkim.sign(
             message=msg.as_bytes(),
-            selector=base64.b64encode(bytes(dkim_selector, encoding='utf-8')),
-            domain=base64.b64encode(bytes(sender_domain, encoding='utf-8')),
+            # selector=base64.b64encode(bytes(dkim_selector, encoding='utf-8')),
+            # domain=base64.b64encode(bytes(sender_domain, encoding='utf-8')),
+            selector=dkim_selector,
+            domain=domain,
             privkey=bytes(dkim_private_key, encoding='utf-8'),
         )
         msg["DKIM-Signature"] = sig.decode().lstrip("DKIM-Signature: ")
     context = ssl.create_default_context()
+    print(msg)
     with smtplib.SMTP_SSL(smtp_mail_server, port, context=context) as server:
         server.login(sender_email, password)
         server.sendmail(sender_email, to, msg.as_string())
