@@ -56,18 +56,7 @@ def send_mail(to, subject, body):
             privkey=bytes(dkim_private_key, encoding='utf-8'),
         )
         msg["DKIM-Signature"] = sig.decode().lstrip("DKIM-Signature: ")
-    
-    print(msg.as_string())
-    # s = smtplib.SMTP(smtp_mail_server, port)
-    # s.sendmail(sender_email, [to], msg.as_string())
-    # s.quit()
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL(smtp_mail_server, port, context=context) as server:
         server.login(sender_email, password)
         server.sendmail(sender_email, to, msg.as_string())
-
-    # # TODO: react if connecting to postfix is a socket error.
-    # s = smtplib.SMTP(relay)
-    # s.sendmail(sender_email, [to_email], msg.as_string())
-    # s.quit()
-    # return msg
