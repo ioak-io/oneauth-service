@@ -10,6 +10,7 @@ from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Random import get_random_bytes
 import library.jwt_utils as jwt_utils
 import library.mail_utils as mail_utils
+import app.email_template.service as email_template_service
 
 DATABASE_URI = os.environ.get('DATABASE_URI')
 
@@ -61,7 +62,8 @@ def reset_password_link(space_id, data):
     else:
         db_utils.delete(space_id, domain_passwordresetcode, {'userId': user_record[0]['_id']})
         updated_record = db_utils.upsert(space_id, domain_passwordresetcode, {'userId': user_record[0]['_id']})
-        mail_utils.send_mail(data['email'], "test mail", "https://oneauth.ioak.org/#/login?type=reset&auth=" + updated_record['_id'])
+        message_body = email_template_service.compose_message('reset_password_link', {'TEMPLATE_AUTH_CODE': updated_record['_id'], 'TEMPLATE_USER_DISPLAY_NAME': user_record[0]['firstName'] + ' ' + user_record[0]['lastName']})
+        mail_utils.send_mail(data['email'], "test mail", message_body)
         return (200, {'data': 'password reset link sent'})
 
 def verify_password_link(space_id, auth_code):
