@@ -1,5 +1,7 @@
 import os, time, uuid, datetime
 from pymongo import MongoClient
+from google.oauth2 import id_token
+from google.auth.transport import requests
 import secrets, jwt
 import library.db_utils as db_utils
 from Crypto.Hash import SHA256
@@ -136,23 +138,48 @@ def do_authorize(space_id, data):
         if hash(decoded_text) == user['hash']:
             # session_list = db_utils.find(space_id, domain_session, {'userId': user['_id']})
             # if len(session_list) == 0:
-            auth_key = secrets.token_hex(40)
-            db_utils.upsert(space_id, domain_session, {
-                'key': auth_key,
-                'token': jwt.encode({
-                    'userId': str(user.get('_id')),
-                    'firstName': user.get('firstName'),
-                    'lastName': user.get('lastName'),
-                    'email': user.get('email'),
-                    'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=8)
-                    }, 'jwtsecret').decode('utf-8'),
-                'userId': user['_id']
-            })
             # else:
             #     auth_key = session_list[0]['key']
+            auth_key = create_session(space_id, user)
             return (200, {'auth_key': auth_key})
         else:
             return (401, {'data': 'unauthorized'})
+
+def create_session(space_id, user):
+    auth_key = secrets.token_hex(40)
+    db_utils.upsert(space_id, domain_session, {
+        'key': auth_key,
+        'token': jwt.encode({
+            'userId': str(user.get('_id')),
+            'firstName': user.get('firstName'),
+            'lastName': user.get('lastName'),
+            'email': user.get('email'),
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=8)
+            }, 'jwtsecret').decode('utf-8'),
+        'userId': user['_id']
+    })
+    return auth_key
+
+def do_authorize_google(space_id, token):
+    print(token)
+    try:
+        idinfo = id_token.verify_oauth2_token(token, requests.Request(), "81306451496-fg67eb502dvfb50c31huhkbn481bi29h.apps.googleusercontent.com")
+        print(idinfo)
+        if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+            raise ValueError('Wrong issuer.')
+
+        existing_user = db_utils.find(space_id, domain, {'email': idinfo['email']})
+        if len(existing_user) < 1:
+            updated_user = db_utils.upsert(space_id, domain, {'firstName': idinfo['given_name'], 'lastName': idinfo['family_name'], 'email': idinfo['email'], 'emailConfirmation': True})
+        else:
+            updated_user = db_utils.upsert(space_id, domain, {'_id': existing_user[0]['_id'], 'firstName': idinfo['given_name'], 'lastName': idinfo['family_name'], 'email': idinfo['email'], 'emailConfirmation': True})
+        auth_key = create_session(space_id, updated_user)
+        return (200, {'auth_key': auth_key})
+
+        # ID token is valid. Get the user's Google Account ID from the decoded token.
+        # userid = idinfo['sub']
+    except ValueError:
+        return (401, {'data': 'unauthorized'})
 
 def get_session_token(space_id, auth_key):
     session_list = db_utils.find(space_id, domain_session, {'key': auth_key})

@@ -1,14 +1,19 @@
 import smtplib, ssl, dkim, base64
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.header import Header
 
-smtp_mail_server = "smtp.yandex.com"
+# smtp_mail_server = "smtp.yandex.com"
 port = 465
-sender_email = 'no-reply@dev.ioak.org'
-password = "PDXC9MLzgfrVnk6"
+sender_email = str(Header('Ioak support <no-reply@dev.ioak.org>'))
+# password = "PDXC9MLzgfrVnk6"
 domain = b'dev.ioak.org'
 dkim_selector = b'email'
 dkim_private_key_path = "library/dkimkey.pem"
+smtp_mail_server = "smtp.gmail.com"
+# port = 587
+username = 'ioakdevteam@gmail.com'
+password = "oilfvbezqsuculep"
 
 def send_mail_bkp(to, subject, body):
     with open(dkim_private_key_path) as fh:
@@ -34,14 +39,13 @@ def send_mail_bkp(to, subject, body):
         server.login(sender_email, password)
         server.sendmail(sender_email, to, message.as_string())
 
-
-
 def send_mail(to, subject, body):
-    sender_domain = sender_email.split("@")[-1]
+    # sender_domain = sender_email.split("@")[-1]
     # msg = MIMEMultipart("alternative")
     msg = MIMEMultipart()
-    msg.attach(MIMEText(body, "html"))
-    msg.attach(MIMEText(body, "plain"))
+    msg.attach(MIMEText(body, "html", "utf-8"))
+    # msg.attach(MIMEText(body, "plain", "utf-8"))
+    # msg = MIMEText(body, "plain", "utf-8")
     msg["To"] = to
     msg["From"] = sender_email
     msg["Subject"] = subject
@@ -60,7 +64,7 @@ def send_mail(to, subject, body):
         )
         msg["DKIM-Signature"] = sig.decode().lstrip("DKIM-Signature: ")
     context = ssl.create_default_context()
-    print(msg)
+    # print(msg)
     with smtplib.SMTP_SSL(smtp_mail_server, port, context=context) as server:
-        server.login(sender_email, password)
+        server.login(username, password)
         server.sendmail(sender_email, to, msg.as_string())

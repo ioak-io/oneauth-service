@@ -44,6 +44,11 @@ def authorize(request, space_id):
     response = service.do_authorize(space_id, request.body)
     return JsonResponse(response[1], status=response[0])
 
+@api_view(['POST'])
+def authorize_google(request, space_id, token):
+    response = service.do_authorize_google(space_id, token)
+    return JsonResponse(response[1], status=response[0])
+
 @api_view(['GET'])
 def get_session_token(request, space_id, auth_key):
     response = service.get_session(space_id, auth_key)
