@@ -4,7 +4,7 @@ import oneauth.settings as settings
 
 # Setting the Default Django settings module
 os.environ.setdefault('DJANGO_SETTINGS_MODULE','oneauth.settings')
-app=Celery('oneauth')
+app=Celery(100)
 
 # Using a String here means the worker will always find the configuration information
 app.config_from_object('django.conf:settings')

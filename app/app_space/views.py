@@ -4,7 +4,7 @@ from django.core import serializers
 import app.app_space.service as service
 import json, base64
 
-self_space='oneauth'
+self_space=100
 
 @api_view(['GET', 'PUT'])
 def get_update(request):

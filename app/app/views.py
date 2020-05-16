@@ -5,7 +5,7 @@ import app.app.service as service
 import app.role.service as role_service
 import json, base64
 
-self_space='oneauth'
+self_space=100
 
 @api_view(['GET', 'PUT', 'POST'])
 def get_update_app(request):

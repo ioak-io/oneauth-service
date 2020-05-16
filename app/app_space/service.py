@@ -13,7 +13,7 @@ import secrets
 DATABASE_URI = os.environ.get('DATABASE_URI')
 
 domain = 'appspace'
-database_name='oneauth'
+database_name=100
 
 def find(request):
     data = db_utils.find(database_name, domain, {})

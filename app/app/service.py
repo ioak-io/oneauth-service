@@ -13,7 +13,7 @@ import secrets
 DATABASE_URI = os.environ.get('DATABASE_URI')
 
 domain = 'app'
-database_name='oneauth'
+database_name=100
 
 def find(request):
     roles = role_service.get_roles(request.user_id)

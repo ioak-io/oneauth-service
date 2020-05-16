@@ -7,6 +7,7 @@ from datetime import datetime
 DATABASE_URI = os.environ.get('DATABASE_URI')
 
 def find(space, collection_name, search_criteria, sort = None, user_id = None):
+    space = 'oa' + str(space)
     if sort is None:
         data = get_collection(space, collection_name).find(declean_object(search_criteria))
     else:
@@ -16,6 +17,7 @@ def find(space, collection_name, search_criteria, sort = None, user_id = None):
     return data
 
 def upsert(space, collection_name, data, user_id = None):
+    space = 'oa' + str(space)
     now = datetime.now()
     data['lastModifiedBy'] = user_id
     data['lastModifiedAt'] = now
@@ -40,6 +42,7 @@ def upsert(space, collection_name, data, user_id = None):
         return updated_record
 
 def delete(space, collection_name, search_criteria, user_id = None):
+    space = 'oa' + str(space)
     search_criteria = declean_object(search_criteria)
     result = get_collection(space, collection_name).delete_many(search_criteria)
     return result

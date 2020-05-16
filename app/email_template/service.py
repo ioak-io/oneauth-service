@@ -1,6 +1,6 @@
 import library.db_utils as db_utils
 
-self_space = 'oneauth'
+self_space = 100
 domain = 'emailTemplate'
 
 def compose_message(template_name, arg):

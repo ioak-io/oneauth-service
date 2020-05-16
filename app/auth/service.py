@@ -28,6 +28,7 @@ def do_signup(space_id, data):
     else:
         data_to_add = get_user_with_auth_data(data)
         data_to_add['emailConfirmation'] = False
+        data_to_add['type'] = 'oneauth'
         user = db_utils.upsert(space_id, domain, data_to_add)
         send_email_confirmation_link(space_id, user)
         return (200, {'data': user})
@@ -170,9 +171,9 @@ def do_authorize_google(space_id, token):
 
         existing_user = db_utils.find(space_id, domain, {'email': idinfo['email']})
         if len(existing_user) < 1:
-            updated_user = db_utils.upsert(space_id, domain, {'firstName': idinfo['given_name'], 'lastName': idinfo['family_name'], 'email': idinfo['email'], 'emailConfirmation': True})
+            updated_user = db_utils.upsert(space_id, domain, {'firstName': idinfo['given_name'], 'lastName': idinfo['family_name'], 'email': idinfo['email'], 'emailConfirmation': True, 'type': 'google'})
         else:
-            updated_user = db_utils.upsert(space_id, domain, {'_id': existing_user[0]['_id'], 'firstName': idinfo['given_name'], 'lastName': idinfo['family_name'], 'email': idinfo['email'], 'emailConfirmation': True})
+            updated_user = db_utils.upsert(space_id, domain, {'_id': existing_user[0]['_id'], 'firstName': idinfo['given_name'], 'lastName': idinfo['family_name'], 'email': idinfo['email'], 'emailConfirmation': True, 'type': 'google'})
         auth_key = create_session(space_id, updated_user)
         return (200, {'auth_key': auth_key})
 
@@ -180,6 +181,15 @@ def do_authorize_google(space_id, token):
         # userid = idinfo['sub']
     except ValueError:
         return (401, {'data': 'unauthorized'})
+
+def do_authorize_facebook(space_id, data):
+    existing_user = db_utils.find(space_id, domain, {'email': data['email']})
+    if len(existing_user) < 1:
+        updated_user = db_utils.upsert(space_id, domain, {'firstName': data['firstName'], 'lastName': data['lastName'], 'email': data['email'], 'emailConfirmation': True, 'type': 'facebook'})
+    else:
+        updated_user = db_utils.upsert(space_id, domain, {'_id': existing_user[0]['_id'], 'firstName': data['firstName'], 'lastName': data['lastName'], 'email': data['email'], 'emailConfirmation': True, 'type': 'facebook'})
+    auth_key = create_session(space_id, updated_user)
+    return (200, {'auth_key': auth_key})
 
 def get_session_token(space_id, auth_key):
     session_list = db_utils.find(space_id, domain_session, {'key': auth_key})
@@ -235,5 +245,5 @@ def hash(text):
     return b64encode(SHA256.new(text.encode()).digest()).decode()
 
 def get_all_users(request):
-    data = db_utils.find('oneauth' , domain, {})
+    data = db_utils.find(100 , domain, {})
     return ('200', {'data': data})

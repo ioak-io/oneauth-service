@@ -14,7 +14,7 @@ from bson.objectid import ObjectId
 DATABASE_URI = os.environ.get('DATABASE_URI')
 
 domain = 'space'
-database_name = 'oneauth'
+database_name = 100
 
 def find(request):
     roles = role_service.get_roles(request.user_id)
@@ -46,7 +46,7 @@ def create(data):
         existingSpace['sessionExpiry'] = data['sessionExpiry']
         updated_record = db_utils.upsert(database_name, domain, existingSpace)
     else:
-        data['spaceId'] = 'oa' + str(sequence_service.nextval('oneauth', 'spaceId', 'na'))
+        data['spaceId'] = str(sequence_service.nextval(100, 'spaceId', 'na'))
         updated_record = db_utils.upsert(database_name, domain, data)
     return (200, {'data': updated_record})
 

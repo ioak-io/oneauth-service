@@ -4,7 +4,7 @@ import app.auth.service as service
 from django.core import serializers
 import json
 
-self_space = 'oneauth'
+self_space = 100
 
 @api_view(['POST'])
 def signup(request):
@@ -49,6 +49,11 @@ def authorize(request):
 @api_view(['POST'])
 def authorize_google(request, token):
     response = service.do_authorize_google(self_space, token)
+    return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
+def authorize_facebook(request):
+    response = service.do_authorize_facebook(self_space, request.body)
     return JsonResponse(response[1], status=response[0])
 
 @api_view(['GET'])
