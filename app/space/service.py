@@ -40,11 +40,7 @@ def create(data):
     if 'spaceId' in data:
         spaceData = db_utils.find(database_name, domain, {'spaceId': data['spaceId']})
     if len(spaceData) == 1:
-        existingSpace = spaceData[0]
-        existingSpace['name'] = data['name']
-        existingSpace['email'] = data['email']
-        existingSpace['sessionExpiry'] = data['sessionExpiry']
-        updated_record = db_utils.upsert(database_name, domain, existingSpace)
+        return (404, {'data': 'space exists'})
     else:
         data['spaceId'] = str(sequence_service.nextval(100, 'spaceId', 'na'))
         updated_record = db_utils.upsert(database_name, domain, data)
@@ -59,4 +55,5 @@ def do_delete_space(space_id):
     roleData = db_utils.delete(database_name, 'role', {'domainId': domain_id})
     deleteSpace = db_utils.delete(database_name,space_id,{'spaceId':space_id})
     deleteSpaceData = db_utils.delete(database_name, domain,{'spaceId': space_id})
-    return (200, {'deletedData': ''})
+    dropped_database = db_utils.drop_database(space_id)
+    return (200, {'deletedData': dropped_database})

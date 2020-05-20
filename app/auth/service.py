@@ -33,6 +33,15 @@ def do_signup(space_id, data):
         send_email_confirmation_link(space_id, user)
         return (200, {'data': user})
 
+def do_signup_extern_provider(space_id, data):
+    existing_user = db_utils.find(space_id, domain, {'email': data['email']})
+    if len(existing_user) > 0:
+        return (403, {'data': 'user already present'})
+    else:
+        data['emailConfirmation'] = True
+        user = db_utils.upsert(space_id, domain, data)
+        return (200, {'data': user})
+
 def get_user_with_auth_data(data):
     solution = secrets.token_hex(80)
     data['solution'] = solution
@@ -133,7 +142,7 @@ def reset_password(space_id, auth_code, data):
         return (200, {'data': 'password updated'})
 
 def do_authorize(space_id, data):
-    user_list = db_utils.find(space_id, domain, {'email': data.get('email')})
+    user_list = db_utils.find(space_id, domain, {'email': data.get('email'), 'type': 'oneauth'})
     if len(user_list) == 0:
         return (404, {})
     else:
@@ -163,6 +172,7 @@ def create_session(space_id, user):
             'firstName': user.get('firstName'),
             'lastName': user.get('lastName'),
             'email': user.get('email'),
+            'type': user.get('type'),
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=8)
             }, 'jwtsecret').decode('utf-8'),
         'userId': user['_id']

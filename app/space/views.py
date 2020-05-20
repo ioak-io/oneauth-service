@@ -2,7 +2,7 @@ from django.http import HttpResponse, JsonResponse
 from rest_framework.decorators import api_view
 from django.core import serializers
 import app.space.service as service
-from app.auth.service import do_signup
+import app.auth.service as auth_service
 import app.role.service as role_service
 import app.user.service as user_service
 import json, base64
@@ -18,20 +18,29 @@ def get_update(request):
         response = service.update(request, self_space, request.body)
         return JsonResponse(response[1], status=response[0])
     if request.method == 'POST':
+        oa_user_list = user_service.get_user_by_id(self_space, request.body.get('userId'))
+        if len(oa_user_list) == 0:
+            return JsonResponse({'data': 'user does not exist'}, status=404)
+        oa_user = oa_user_list[0]
         space_response = service.create({
             'name': request.body.get('name'),
-            'email': request.body.get('email'),
+            'email': oa_user.get('email'),
             'sessionExpiry': request.body.get('sessionExpiry')
         })
         if space_response[0] == 200:
             created_space = space_response[1]['data']
-            oa_user = user_service.get_user_by_email(self_space, request.body.get('email'))[0]
-            user_response = do_signup(created_space.get('spaceId'), {
-                'email': request.body.get('email'),
-                'password': request.body.get('password'),
+            user_to_add = {
+                'email': oa_user.get('email'),
                 'firstName': oa_user.get('firstName'),
                 'lastName': oa_user.get('lastName')
-            })
+            }
+            if oa_user.get('type') == 'oneauth':
+                user_to_add['password'] = request.body.get('password')
+                user_response = auth_service.do_signup(created_space.get('spaceId'), user_to_add)
+            else:
+                user_to_add['type'] = oa_user['type']
+                user_response = auth_service.do_signup_extern_provider(created_space.get('spaceId'), user_to_add)
+            
             role_response = role_service.add_role({
                 'type': 'space',
                 'userId': oa_user['_id'],
