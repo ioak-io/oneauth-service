@@ -17,6 +17,11 @@ def change_password(request):
     return JsonResponse(response[1], status=response[0])
 
 @api_view(['POST'])
+def update_profile(request):
+    response = service.update_profile(self_space, request.body, request.user_id)
+    return JsonResponse(response[1], status=response[0])
+
+@api_view(['POST'])
 def reset_password_link(request):
     response = service.reset_password_link(self_space, request.body)
     return JsonResponse(response[1], status=response[0])

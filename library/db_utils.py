@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from library.db_connection_factory import get_collection
+import library.db_connection_factory as db_connection_factory
 from bson.objectid import ObjectId
 import os
 from datetime import datetime
@@ -46,6 +47,10 @@ def delete(space, collection_name, search_criteria, user_id = None):
     search_criteria = declean_object(search_criteria)
     result = get_collection(space, collection_name).delete_many(search_criteria)
     return result
+
+def drop_database(space, user_id = None):
+    space = 'oa' + str(space)
+    db_connection_factory.drop_database(space)
 
 def clean_object(data):
     if data is not None and data.get('_id') is not None and type(data.get('_id')) == ObjectId:

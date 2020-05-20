@@ -22,6 +22,7 @@ from . import views
 urlpatterns = [
     path('admin/<str:space_id>/', admin.site.urls),
     path('auth/', include('app.auth.urls')),
+    path('user/', include('app.user.urls')),
     path('app/', include('app.app.urls')),
     path('space/', include('app.space.urls')),
     path('appspace/', include('app.app_space.urls')),
