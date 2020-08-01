@@ -7,12 +7,16 @@ from datetime import datetime
 
 DATABASE_URI = os.environ.get('DATABASE_URI')
 
-def find(space, collection_name, search_criteria, sort = None, user_id = None):
+def find(space, collection_name, search_criteria, sort = None, user_id = None, project = None):
     space = 'oa' + str(space)
-    if sort is None:
+    if sort is None and project is None:
         data = get_collection(space, collection_name).find(declean_object(search_criteria))
-    else:
+    elif project is None:
         data = get_collection(space, collection_name).find(declean_object(search_criteria)).sort(sort)
+    elif sort is None:
+        data = get_collection(space, collection_name).find(declean_object(search_criteria), projection=project)
+    else:
+        data = get_collection(space, collection_name).find(declean_object(search_criteria), projection=project).sort(sort)
     data = list(data)
     data = clean_array(data)
     return data
