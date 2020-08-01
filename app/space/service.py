@@ -25,6 +25,10 @@ def find(request):
     data = db_utils.find(database_name, domain, {'_id': {'$in': authorized_space_id_list}})
     return (200, {'data': data})
 
+def introspect(request):
+    data = db_utils.find(database_name, domain, {}, project=['name', 'spaceId'])
+    return (200, {'data': data})
+
 def find_by_space_id(space_id):
     spaceData = get_collection(database_name,domain).find_one({'spaceId': space_id})
     spaceData['_id'] = str(spaceData['_id'])
