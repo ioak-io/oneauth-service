@@ -30,7 +30,7 @@ urlpatterns = [
     path('authorize/facebook', oa_views.authorize_facebook),
     path('session/<str:auth_key>', oa_views.get_session_token),
     path('session/<str:auth_key>/invalidate', oa_views.invalidate_session_token),
-    path('', app_views.get_all_users),
+    path('', space_views.get_all_users),
     path('appspace/signup', app_views.signup),
     path('resetpasswordlink', app_views.reset_password_link),
     path('verifypasswordlink/<str:auth_code>', app_views.verify_password_link),

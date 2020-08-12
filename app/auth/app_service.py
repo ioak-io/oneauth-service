@@ -22,7 +22,6 @@ domain_passwordresetcode="passwordResetCode"
 domain_emailconfirmationcode="emailConfirmationCode"
 
 def do_signup(app_id, data):
-    print('inside', data);
     existing_user = db_utils.find(app_id, domain, {'email': data['email']})
     if len(existing_user) > 0:
         return (403, {'data': 'user already present'})
@@ -98,8 +97,7 @@ def email_confirmation_link(space_id, data):
         return (200, {'data': 'email confirmation link sent'})
 
 def send_email_confirmation_link(space_id, user):
-    print(user, space_id)
-    db_utils.delete(space_id, domain_emailconfirmationcode, {'userId': user['_id']})
+     db_utils.delete(space_id, domain_emailconfirmationcode, {'userId': user['_id']})
     updated_record = db_utils.upsert(space_id, domain_emailconfirmationcode, {'userId': user['_id']})
     if space_id == 100:
         auth_url = "https://oneauth.ioak.org/#/login?type=confirmemail&auth=" + updated_record['_id']
