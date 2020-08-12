@@ -1,7 +1,7 @@
 from django.urls import path
 from django.conf.urls import url
 
-from . import oa_views, space_views
+from . import oa_views, space_views, app_views
 
 urlpatterns = [
     path('<str:space_id>/signup', space_views.signup),
@@ -30,5 +30,18 @@ urlpatterns = [
     path('authorize/facebook', oa_views.authorize_facebook),
     path('session/<str:auth_key>', oa_views.get_session_token),
     path('session/<str:auth_key>/invalidate', oa_views.invalidate_session_token),
-    path('', space_views.get_all_users),
+    path('', app_views.get_all_users),
+    path('appspace/signup', app_views.signup),
+    path('resetpasswordlink', app_views.reset_password_link),
+    path('verifypasswordlink/<str:auth_code>', app_views.verify_password_link),
+    path('emailconfirmationlink', app_views.email_confirmation_link),
+    path('verifyemailconfirmationlink/<str:auth_code>', app_views.verify_email_confirmation_link),
+    path('resetpassword/<str:auth_code>', app_views.reset_password),
+    path('changepassword', app_views.change_password),
+    path('updateprofile', app_views.update_profile),
+    path('authorize', app_views.authorize),
+    path('authorize/google/<str:token>', app_views.authorize_google),
+    path('authorize/facebook', app_views.authorize_facebook),
+    path('session/<str:auth_key>', app_views.get_session_token),
+    path('session/<str:auth_key>/invalidate', app_views.invalidate_session_token),
 ]
