@@ -1,7 +1,7 @@
 from django.urls import path
 from django.conf.urls import url
 
-from . import oa_views, space_views, app_views
+from . import oa_views, space_views, appspace_views
 
 urlpatterns = [
     path('<str:space_id>/signup', space_views.signup),
@@ -31,17 +31,17 @@ urlpatterns = [
     path('session/<str:auth_key>', oa_views.get_session_token),
     path('session/<str:auth_key>/invalidate', oa_views.invalidate_session_token),
     path('', space_views.get_all_users),
-    path('appspace/signup', app_views.signup),
-    path('resetpasswordlink', app_views.reset_password_link),
-    path('verifypasswordlink/<str:auth_code>', app_views.verify_password_link),
-    path('emailconfirmationlink', app_views.email_confirmation_link),
-    path('verifyemailconfirmationlink/<str:auth_code>', app_views.verify_email_confirmation_link),
-    path('resetpassword/<str:auth_code>', app_views.reset_password),
-    path('changepassword', app_views.change_password),
-    path('updateprofile', app_views.update_profile),
-    path('authorize', app_views.authorize),
-    path('authorize/google/<str:token>', app_views.authorize_google),
-    path('authorize/facebook', app_views.authorize_facebook),
-    path('session/<str:auth_key>', app_views.get_session_token),
-    path('session/<str:auth_key>/invalidate', app_views.invalidate_session_token),
+    path('app/<str:appspace_id>/signup', appspace_views.signup),
+    path('app/<str:appspace_id>/resetpasswordlink', appspace_views.reset_password_link),
+    path('app/<str:appspace_id>/verifypasswordlink/<str:auth_code>', appspace_views.verify_password_link),
+    path('app/<str:appspace_id>/emailconfirmationlink', appspace_views.email_confirmation_link),
+    path('app/<str:appspace_id>/verifyemailconfirmationlink/<str:auth_code>', appspace_views.verify_email_confirmation_link),
+    path('app/<str:appspace_id>/resetpassword/<str:auth_code>', appspace_views.reset_password),
+    path('app/<str:appspace_id>/changepassword', appspace_views.change_password),
+    path('app/<str:appspace_id>/updateprofile', appspace_views.update_profile),
+    path('app/<str:appspace_id>/authorize', appspace_views.authorize),
+    path('app/<str:appspace_id>/authorize/google/<str:token>', appspace_views.authorize_google),
+    path('app/<str:appspace_id>/authorize/facebook', appspace_views.authorize_facebook),
+    path('app/<str:appspace_id>/session/<str:auth_key>', appspace_views.get_session_token),
+    path('app/<str:appspace_id>/session/<str:auth_key>/invalidate', appspace_views.invalidate_session_token),
 ]

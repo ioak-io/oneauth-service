@@ -21,25 +21,25 @@ domain_session="session"
 domain_passwordresetcode="passwordResetCode"
 domain_emailconfirmationcode="emailConfirmationCode"
 
-def do_signup(app_id, data):
-    existing_user = db_utils.find(app_id, domain, {'email': data['email']})
+def do_signup(appspace_id, data):
+    existing_user = db_utils.find(appspace_id, domain, {'email': data['email']})
     if len(existing_user) > 0:
         return (403, {'data': 'user already present'})
     else:
         data_to_add = get_user_with_auth_data(data)
         data_to_add['emailConfirmation'] = False
         data_to_add['type'] = 'oneauth'
-        user = db_utils.upsert(app_id, domain, data_to_add)
-        send_email_confirmation_link(app_id, user)
+        user = db_utils.upsert(appspace_id, domain, data_to_add)
+        send_email_confirmation_link(appspace_id, user)
         return (200, {'data': user})
 
-def do_signup_extern_provider(space_id, data):
-    existing_user = db_utils.find(space_id, domain, {'email': data['email']})
+def do_signup_extern_provider(appspace_id, data):
+    existing_user = db_utils.find(appspace_id, domain, {'email': data['email']})
     if len(existing_user) > 0:
         return (403, {'data': 'user already present'})
     else:
         data['emailConfirmation'] = True
-        user = db_utils.upsert(space_id, domain, data)
+        user = db_utils.upsert(appspace_id, domain, data)
         return (200, {'data': user})
 
 def get_user_with_auth_data(data):
@@ -53,8 +53,8 @@ def get_user_with_auth_data(data):
     del data['password']
     return data
 
-def change_password(space_id, data, user_id):
-    user_list = db_utils.find(space_id, domain, {'_id': user_id, 'emailConfirmation': True})
+def change_password(appspace_id, data, user_id):
+    user_list = db_utils.find(appspace_id, domain, {'_id': user_id, 'emailConfirmation': True})
     if len(user_list) < 1:
         return (404, {'data': 'user does not exist'})
     else:
@@ -66,83 +66,83 @@ def change_password(space_id, data, user_id):
         if hash(decoded_text) == user['hash']:
             user['password'] = data['newPassword']
             auth_user_data = get_user_with_auth_data(user)
-            db_utils.upsert(space_id, domain, auth_user_data)
+            db_utils.upsert(appspace_id, domain, auth_user_data)
             return (200, {'data': 'password updated'})
         else:
             return (401, {'data': 'unauthorized'})
 
-def reset_password_link(space_id, data):
-    user_record = db_utils.find(space_id, domain, {'email': data['email'], 'emailConfirmation': True})
+def reset_password_link(appspace_id, data):
+    user_record = db_utils.find(appspace_id, domain, {'email': data['email'], 'emailConfirmation': True})
     if len(user_record) < 1:
         return (404, {'data': 'user does not exist'})
     else:
-        db_utils.delete(space_id, domain_passwordresetcode, {'userId': user_record[0]['_id']})
-        updated_record = db_utils.upsert(space_id, domain_passwordresetcode, {'userId': user_record[0]['_id']})
-        if space_id == 100:
+        db_utils.delete(appspace_id, domain_passwordresetcode, {'userId': user_record[0]['_id']})
+        updated_record = db_utils.upsert(appspace_id, domain_passwordresetcode, {'userId': user_record[0]['_id']})
+        if appspace_id == 100:
             auth_url = "https://oneauth.ioak.org/#/login?type=reset&auth=" + updated_record['_id']
         else:
-            auth_url = "https://oneauth.ioak.org/#/space/" + space_id + "/login?type=reset&auth=" + updated_record['_id']
+            auth_url = "https://oneauth.ioak.org/#/appspace/" + appspace_id + "/login?type=reset&auth=" + updated_record['_id']
         message_body = email_template_service.compose_message('reset_password_link', {'TEMPLATE_AUTH_URL': auth_url, 'TEMPLATE_AUTH_CODE': updated_record['_id'], 'TEMPLATE_USER_DISPLAY_NAME': user_record[0]['firstName'] + ' ' + user_record[0]['lastName']})
         mail_utils.send_mail(data['email'], "Link to reset your oneauth user account", message_body)
         return (200, {'data': 'password reset link sent'})
 
-def email_confirmation_link(space_id, data):
-    user_record = db_utils.find(space_id, domain, {'email': data['email']})
+def email_confirmation_link(appspace_id, data):
+    user_record = db_utils.find(appspace_id, domain, {'email': data['email']})
     if len(user_record) < 1:
         return (404, {'data': 'user does not exist'})
     elif user_record[0]['emailConfirmation']:
         return (200, {'data': 'email already confirmed'})
     else:
-        send_email_confirmation_link(space_id, user_record[0])
+        send_email_confirmation_link(appspace_id, user_record[0])
         return (200, {'data': 'email confirmation link sent'})
 
-def send_email_confirmation_link(space_id, user):
-     db_utils.delete(space_id, domain_emailconfirmationcode, {'userId': user['_id']})
-    updated_record = db_utils.upsert(space_id, domain_emailconfirmationcode, {'userId': user['_id']})
-    if space_id == 100:
+def send_email_confirmation_link(appspace_id, user):
+    db_utils.delete(appspace_id, domain_emailconfirmationcode, {'userId': user['_id']})
+    updated_record = db_utils.upsert(appspace_id, domain_emailconfirmationcode, {'userId': user['_id']})
+    if appspace_id == 100:
         auth_url = "https://oneauth.ioak.org/#/login?type=confirmemail&auth=" + updated_record['_id']
     else:
-        auth_url = "https://oneauth.ioak.org/#/appspace/login?type=confirmemail&auth=" + updated_record['_id']
+        auth_url = "https://oneauth.ioak.org/#/appspace/" + appspace_id + "/login?type=confirmemail&auth=" + updated_record['_id']
     message_body = email_template_service.compose_message('confirm_email_link', {'TEMPLATE_AUTH_URL': auth_url, 'TEMPLATE_AUTH_CODE': updated_record['_id'], 'TEMPLATE_USER_DISPLAY_NAME': user['firstName'] + ' ' + user['lastName']})
     mail_utils.send_mail(user['email'], "Confirm your email to activate your oneauth user account", message_body)
 
-def verify_email_confirmation_link(space_id, auth_code):
-    reset_link = db_utils.find(space_id, domain_emailconfirmationcode, {'_id': auth_code})
+def verify_email_confirmation_link(appspace_id, auth_code):
+    reset_link = db_utils.find(appspace_id, domain_emailconfirmationcode, {'_id': auth_code})
     if len(reset_link) < 1:
         return (404, {'data': 'email confirmation link is invalid'})
     else:
-        user_record = db_utils.find(space_id, domain, {'_id': reset_link[0]['userId']})
+        user_record = db_utils.find(appspace_id, domain, {'_id': reset_link[0]['userId']})
         if len(user_record) > 0:
             user = user_record[0]
             user['emailConfirmation'] = True
-            db_utils.upsert(space_id, domain, user)
+            db_utils.upsert(appspace_id, domain, user)
             return (200, {'data': 'email confirmed'})
         else:
             return (404, {'data': 'user not found'})
 
-def verify_password_link(space_id, auth_code):
-    reset_link = db_utils.find(space_id, domain_passwordresetcode, {'_id': auth_code})
+def verify_password_link(appspace_id, auth_code):
+    reset_link = db_utils.find(appspace_id, domain_passwordresetcode, {'_id': auth_code})
     if len(reset_link) < 1:
         return (404, {'data': 'password reset code is invalid'})
     else:
         return (200, {'data': 'password reset link active'})
 
-def reset_password(space_id, auth_code, data):
-    reset_link = db_utils.find(space_id, domain_passwordresetcode, {'_id': auth_code})
+def reset_password(appspace_id, auth_code, data):
+    reset_link = db_utils.find(appspace_id, domain_passwordresetcode, {'_id': auth_code})
     if len(reset_link) < 1:
         return (404, {'data': 'password reset code is invalid'})
     elif int((datetime.datetime.now() - reset_link[0]['createdAt']).total_seconds()) > (2*24*60*60):
         return (410, {'data': 'password reset code is expired'})
     else:
-        user_data = db_utils.find(space_id, domain, {'_id': reset_link[0]['userId']})
+        user_data = db_utils.find(appspace_id, domain, {'_id': reset_link[0]['userId']})
         user_data[0]['password'] = data['password']
         auth_user_data = get_user_with_auth_data(user_data[0])
-        db_utils.upsert(space_id, domain, auth_user_data)
-        db_utils.delete(space_id, domain_passwordresetcode, {'userId': reset_link[0]['userId']})
+        db_utils.upsert(appspace_id, domain, auth_user_data)
+        db_utils.delete(appspace_id, domain_passwordresetcode, {'userId': reset_link[0]['userId']})
         return (200, {'data': 'password updated'})
 
-def do_authorize(space_id, data):
-    user_list = db_utils.find(space_id, domain, {'email': data.get('email'), 'type': 'oneauth'})
+def do_authorize(appspace_id, data):
+    user_list = db_utils.find(appspace_id, domain, {'email': data.get('email'), 'type': 'oneauth'})
     if len(user_list) == 0:
         return (404, {})
     else:
@@ -158,14 +158,14 @@ def do_authorize(space_id, data):
             # if len(session_list) == 0:
             # else:
             #     auth_key = session_list[0]['key']
-            auth_key = create_session(space_id, user)
+            auth_key = create_session(appspace_id, user)
             return (200, {'auth_key': auth_key})
         else:
             return (401, {'data': 'unauthorized'})
 
-def create_session(space_id, user):
+def create_session(appspace_id, user):
     auth_key = secrets.token_hex(40)
-    db_utils.upsert(space_id, domain_session, {
+    db_utils.upsert(appspace_id, domain_session, {
         'key': auth_key,
         'token': jwt.encode({
             'userId': str(user.get('_id')),
@@ -179,7 +179,7 @@ def create_session(space_id, user):
     })
     return auth_key
 
-def do_authorize_google(space_id, token):
+def do_authorize_google(appspace_id, token):
     print(token)
     try:
         idinfo = id_token.verify_oauth2_token(token, requests.Request(), "81306451496-fg67eb502dvfb50c31huhkbn481bi29h.apps.googleusercontent.com")
@@ -187,12 +187,12 @@ def do_authorize_google(space_id, token):
         if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
             raise ValueError('Wrong issuer.')
 
-        existing_user = db_utils.find(space_id, domain, {'email': idinfo['email']})
+        existing_user = db_utils.find(appspace_id, domain, {'email': idinfo['email']})
         if len(existing_user) < 1:
-            updated_user = db_utils.upsert(space_id, domain, {'firstName': idinfo['given_name'], 'lastName': idinfo['family_name'], 'email': idinfo['email'], 'emailConfirmation': True, 'type': 'google'})
+            updated_user = db_utils.upsert(appspace_id, domain, {'firstName': idinfo['given_name'], 'lastName': idinfo['family_name'], 'email': idinfo['email'], 'emailConfirmation': True, 'type': 'google'})
         else:
-            updated_user = db_utils.upsert(space_id, domain, {'_id': existing_user[0]['_id'], 'firstName': idinfo['given_name'], 'lastName': idinfo['family_name'], 'email': idinfo['email'], 'emailConfirmation': True, 'type': 'google'})
-        auth_key = create_session(space_id, updated_user)
+            updated_user = db_utils.upsert(appspace_id, domain, {'_id': existing_user[0]['_id'], 'firstName': idinfo['given_name'], 'lastName': idinfo['family_name'], 'email': idinfo['email'], 'emailConfirmation': True, 'type': 'google'})
+        auth_key = create_session(appspace_id, updated_user)
         return (200, {'auth_key': auth_key})
 
         # ID token is valid. Get the user's Google Account ID from the decoded token.
@@ -200,17 +200,17 @@ def do_authorize_google(space_id, token):
     except ValueError:
         return (401, {'data': 'unauthorized'})
 
-def do_authorize_facebook(space_id, data):
-    existing_user = db_utils.find(space_id, domain, {'email': data['email']})
+def do_authorize_facebook(appspace_id, data):
+    existing_user = db_utils.find(appspace_id, domain, {'email': data['email']})
     if len(existing_user) < 1:
-        updated_user = db_utils.upsert(space_id, domain, {'firstName': data['firstName'], 'lastName': data['lastName'], 'email': data['email'], 'emailConfirmation': True, 'type': 'facebook'})
+        updated_user = db_utils.upsert(appspace_id, domain, {'firstName': data['firstName'], 'lastName': data['lastName'], 'email': data['email'], 'emailConfirmation': True, 'type': 'facebook'})
     else:
-        updated_user = db_utils.upsert(space_id, domain, {'_id': existing_user[0]['_id'], 'firstName': data['firstName'], 'lastName': data['lastName'], 'email': data['email'], 'emailConfirmation': True, 'type': 'facebook'})
-    auth_key = create_session(space_id, updated_user)
+        updated_user = db_utils.upsert(appspace_id, domain, {'_id': existing_user[0]['_id'], 'firstName': data['firstName'], 'lastName': data['lastName'], 'email': data['email'], 'emailConfirmation': True, 'type': 'facebook'})
+    auth_key = create_session(appspace_id, updated_user)
     return (200, {'auth_key': auth_key})
 
-def get_session_token(space_id, auth_key):
-    session_list = db_utils.find(space_id, domain_session, {'key': auth_key})
+def get_session_token(appspace_id, auth_key):
+    session_list = db_utils.find(appspace_id, domain_session, {'key': auth_key})
     if len(session_list) == 0:
         return (404, {'data': 'not found'})
     else:
@@ -219,8 +219,8 @@ def get_session_token(space_id, auth_key):
             'token': session['token']
         })
 
-def get_session(space_id, auth_key):
-    session_list = db_utils.find(space_id, domain_session, {'key': auth_key})
+def get_session(appspace_id, auth_key):
+    session_list = db_utils.find(appspace_id, domain_session, {'key': auth_key})
     if len(session_list) == 0:
         return (404, {'data': 'not found'})
     else:
@@ -233,8 +233,8 @@ def get_session(space_id, auth_key):
             print(content)
             return (200, content)
 
-def invalidate_session_token(space_id, auth_key):
-    result = db_utils.delete(space_id, domain_session, {'key': auth_key})
+def invalidate_session_token(appspace_id, auth_key):
+    result = db_utils.delete(appspace_id, domain_session, {'key': auth_key})
     if result.deleted_count > 0:
         return (200, {'data': 'session invalidated'})
     else:
