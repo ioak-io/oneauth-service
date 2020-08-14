@@ -12,7 +12,7 @@ import secrets
 
 DATABASE_URI = os.environ.get('DATABASE_URI')
 
-domain = 'appspace'
+domain = 'permittedSpaces'
 database_name=100
 
 def find(request):
