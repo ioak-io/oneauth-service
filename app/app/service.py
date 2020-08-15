@@ -31,8 +31,8 @@ def update(request, data):
         data['appId']
     except KeyError:
         data['appId'] = secrets.token_hex(12)
-        updated_record = db_utils.upsert(database_name, domain, data, request.user_id)
         appspace_service.create(data)
+    updated_record = db_utils.upsert(database_name, domain, data, request.user_id)
     return (200, {'data': updated_record})
 
 def find_by_app_id(request, app_id):
