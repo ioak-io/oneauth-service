@@ -6,7 +6,9 @@ import base64
 from bson.binary import Binary
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+import app.sequence.service as sequence_service
 import app.role.service as role_service
+import app.appspace.service as appspace_service
 from bson.objectid import ObjectId
 import secrets
 
@@ -29,6 +31,7 @@ def update(request, data):
         data['appId']
     except KeyError:
         data['appId'] = secrets.token_hex(12)
+        appspace_service.create(data)
     updated_record = db_utils.upsert(database_name, domain, data, request.user_id)
     return (200, {'data': updated_record})
 

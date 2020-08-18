@@ -47,6 +47,7 @@ def create(data):
         return (404, {'data': 'space exists'})
     else:
         data['spaceId'] = str(sequence_service.nextval(100, 'spaceId', 'na'))
+        print(data)
         updated_record = db_utils.upsert(database_name, domain, data)
     return (200, {'data': updated_record})
 
