@@ -15,6 +15,9 @@ import library.mail_utils as mail_utils
 import app.email_template.service as email_template_service
 
 DATABASE_URI = os.environ.get('DATABASE_URI')
+ONEAUTH_URL = os.environ.get('ONEAUTH_URL')
+if ONEAUTH_URL is None:
+    ONEAUTH_URL = 'http://localhost:3010'
 
 domain="user"
 domain_session="session"
@@ -79,9 +82,9 @@ def reset_password_link(space_id, data):
         db_utils.delete(space_id, domain_passwordresetcode, {'userId': user_record[0]['_id']})
         updated_record = db_utils.upsert(space_id, domain_passwordresetcode, {'userId': user_record[0]['_id']})
         if space_id == 100:
-            auth_url = "https://oneauth.ioak.org/#/login?type=reset&auth=" + updated_record['_id']
+            auth_url = ONEAUTH_URL + "/#/login?type=reset&auth=" + updated_record['_id']
         else:
-            auth_url = "https://oneauth.ioak.org/#/space/" + space_id + "/login?type=reset&auth=" + updated_record['_id']
+            auth_url = ONEAUTH_URL + "/#/space/" + space_id + "/login?type=reset&auth=" + updated_record['_id']
         message_body = email_template_service.compose_message('reset_password_link', {'TEMPLATE_AUTH_URL': auth_url, 'TEMPLATE_AUTH_CODE': updated_record['_id'], 'TEMPLATE_USER_DISPLAY_NAME': user_record[0]['firstName'] + ' ' + user_record[0]['lastName']})
         mail_utils.send_mail(data['email'], "Link to reset your oneauth user account", message_body)
         return (200, {'data': 'password reset link sent'})
@@ -100,9 +103,9 @@ def send_email_confirmation_link(space_id, user):
     db_utils.delete(space_id, domain_emailconfirmationcode, {'userId': user['_id']})
     updated_record = db_utils.upsert(space_id, domain_emailconfirmationcode, {'userId': user['_id']})
     if space_id == 100:
-        auth_url = "https://oneauth.ioak.org/#/login?type=confirmemail&auth=" + updated_record['_id']
+        auth_url = ONEAUTH_URL + "/#/login?type=confirmemail&auth=" + updated_record['_id']
     else:
-        auth_url = "https://oneauth.ioak.org/#/space/" + space_id + "/login?type=confirmemail&auth=" + updated_record['_id']
+        auth_url = ONEAUTH_URL + "/#/space/" + space_id + "/login?type=confirmemail&auth=" + updated_record['_id']
     message_body = email_template_service.compose_message('confirm_email_link', {'TEMPLATE_AUTH_URL': auth_url, 'TEMPLATE_AUTH_CODE': updated_record['_id'], 'TEMPLATE_USER_DISPLAY_NAME': user['firstName'] + ' ' + user['lastName']})
     mail_utils.send_mail(user['email'], "Confirm your email to activate your oneauth user account", message_body)
 
