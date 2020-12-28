@@ -30,7 +30,8 @@ ALLOWED_HOSTS = [
     'oneauth-service.herokuapp.com',
     'herokuapp.com',
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
+    '*'
 ]
 
 # Application definition
