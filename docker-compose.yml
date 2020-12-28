@@ -1,0 +1,33 @@
+version: '3.4'
+
+services:
+  mongo:
+    image: mongo:4.2.3-bionic
+    container_name: mongo
+    restart: always
+    ports:
+        - 27017:27017
+    networks:
+      ioak-net:
+        aliases:
+          - mongo.docker
+
+  oneauthservice:
+    image: oneauthservice
+    depends_on:
+      - mongo
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 8020:8020
+    environment:
+      MONGODB_URI: mongodb://mongo.docker:27017
+    networks:
+      ioak-net:
+        aliases:
+          - oneauthservice.docker
+
+networks:
+  ioak-net:
+      name: ioak-network

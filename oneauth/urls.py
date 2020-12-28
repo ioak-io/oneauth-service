@@ -26,5 +26,6 @@ urlpatterns = [
     path('app/', include('app.app.urls')),
     path('space/', include('app.space.urls')),
     path('permittedspace/', include('app.permittedspace.urls')),
-    path('role/', include('app.role.urls'))
+    path('role/', include('app.role.urls')),
+    path('healthcheck/', include('app.healthcheck.urls'))
 ]

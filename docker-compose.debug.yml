@@ -1,0 +1,12 @@
+version: '3.4'
+
+services:
+  oneauthservice:
+    image: oneauthservice
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: ["sh", "-c", "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8020 --nothreading --noreload"]
+    ports:
+      - 8020:8020
+      - 5678:5678
