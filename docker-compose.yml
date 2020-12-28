@@ -19,7 +19,7 @@ services:
       - mongo
     build:
       context: .
-      dockerfile: ./../Dockerfile
+      dockerfile: ./Dockerfile
     ports:
       - 8020:8020
     environment:
