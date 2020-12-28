@@ -17,9 +17,9 @@ services:
     container_name: oneauthservice
     depends_on:
       - mongo
-    # build:
-    #   context: .
-    #   dockerfile: ./../Dockerfile
+    build:
+      context: .
+      dockerfile: ./../Dockerfile
     ports:
       - 8020:8020
     environment:
