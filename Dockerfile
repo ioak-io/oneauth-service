@@ -16,7 +16,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # set project environment variables
 # grab these via Python's os.environ
 # these are 100% optional here
-ENV PORT=8000
+ENV PORT=8010
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -43,5 +43,4 @@ RUN python -m pip install -r requirements.txt
 WORKDIR /app
 COPY . /app
 
-EXPOSE 8888
 CMD gunicorn oneauth.wsgi:application --bind 0.0.0.0:$PORT

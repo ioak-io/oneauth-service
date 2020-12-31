@@ -1,19 +1,6 @@
 version: '3.4'
 
 services:
-  # mongo:
-  #   image: mongo:4.2.3-bionic
-  #   container_name: mongo
-  #   restart: always
-  #   volumes: 
-  #     - /mnt/disks/sdb/data/db:/data/db
-  #   ports:
-  #       - 27017:27017
-  #   networks:
-  #     ioak-net:
-  #       aliases:
-  #         - mongo.docker
-
   oneauthservice:
     image: oneauthservice:latest
     container_name: oneauthservice
@@ -23,7 +10,7 @@ services:
       context: .
       dockerfile: ./Dockerfile
     ports:
-      - 8000:8000
+      - 8010:8010
     environment:
       MONGODB_URI: mongodb://mongo.docker:27017
     networks:

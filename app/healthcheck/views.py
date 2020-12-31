@@ -13,7 +13,7 @@ def hello(request):
 def test(request):
     if request.method == 'GET':
         db_outcome = service.test_database()
-        if outcome == False:
+        if db_outcome == False:
             return JsonResponse({'database': False}, status=400)
         else:
             return JsonResponse({'database': True}, status=200)
