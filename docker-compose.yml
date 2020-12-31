@@ -13,6 +13,7 @@ services:
       - 8005:8005
     environment:
       MONGODB_URI: mongodb://mongo.docker:27017
+      ONEAUTH_URL: https://app.oneauth.ioak.io
     networks:
       ioak-net:
         aliases:
