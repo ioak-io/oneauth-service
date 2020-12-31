@@ -15,3 +15,6 @@ def get_collection(space_id, collection):
 def drop_database(space_id):
     MongoClient(MONGODB_URI).drop_database(space_id)
 
+def get_client():
+    return MongoClient(MONGODB_URI)
+
