@@ -16,7 +16,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # set project environment variables
 # grab these via Python's os.environ
 # these are 100% optional here
-ENV PORT=8010
+ENV PORT=8005
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
