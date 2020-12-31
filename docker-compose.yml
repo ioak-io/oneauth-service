@@ -23,7 +23,7 @@ services:
       context: .
       dockerfile: ./Dockerfile
     ports:
-      - 8020:8020
+      - 8000:8000
     environment:
       MONGODB_URI: mongodb://mongo.docker:27017
     networks:
