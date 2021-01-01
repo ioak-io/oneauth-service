@@ -4,6 +4,7 @@ services:
   oneauthservice:
     image: oneauthservice:latest
     container_name: oneauthservice
+    restart: always
     # depends_on:
     #   - mongo
     build:
