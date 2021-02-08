@@ -21,7 +21,7 @@ google-oauth==1.0.1
 googleapis-common-protos==1.51.0
 gunicorn==19.9.0
 honcho==1.0.1
-httplib2==0.17.3
+httplib2==0.19.0
 idna==2.9
 importlib-metadata==1.5.0
 kombu==4.6.8
