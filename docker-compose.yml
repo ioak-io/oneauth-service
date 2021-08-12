@@ -13,9 +13,9 @@ services:
       MONGODB_URI: mongodb://mongo.docker:27017
       ONEAUTH_API: https://api.ioak.io:8010
       APP_URL: https://oneauth-app.ioak.io
-      PORT: 8025
+      PORT: 8005
     ports:
-      - 8025:8025
+      - 8005:8005
     networks:
       ioak-net:
         aliases:
