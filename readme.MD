@@ -1,21 +1,20 @@
-# Start Server locally
+# Start server locally
 
 ## First time
 
-- pip install virtualenv
-- pip install virtualenvwrapper-win
+- npm install
 
-- mkvirtualenv oneauth
-- pip install -r requirements.txt
-- python manage.py runserver 8020
+## Develop on backend server
 
-## Every time
+On one terminal, run below to watch and build the changes live
 
-- workon oneauth
-- python manage.py runserver 8020
+- npm run build:local
 
-## Procfile Honcho for celery
+On another terminal, run below to start the server
 
-web: gunicorn oneauth.wsgi --log-file
-worker1: celery -A oneauth beat -l info
-worker2: celery -A oneauth worker -l info
+- npm run start
+
+## Start backend server
+
+- npm run build
+- npm run start

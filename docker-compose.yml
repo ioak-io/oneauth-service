@@ -1,25 +1,26 @@
-version: '3.4'
+version: "3.4"
 
 services:
-  oneauthservice:
-    image: oneauthservice:latest
-    container_name: oneauthservice
+  oneauthserver:
+    image: oneauthserver
+    container_name: oneauthserver
     restart: always
-    # depends_on:
-    #   - mongo
     build:
       context: .
       dockerfile: ./Dockerfile
-    ports:
-      - 8005:8005
     environment:
+      NODE_ENV: production
       MONGODB_URI: mongodb://mongo.docker:27017
-      ONEAUTH_URL: https://app.oneauth.ioak.io
+      ONEAUTH_API: https://api.ioak.io:8010
+      APP_URL: https://oneauth-app.ioak.io
+      PORT: 8025
+    ports:
+      - 8025:8025
     networks:
       ioak-net:
         aliases:
-          - oneauthservice.docker
+          - oneauthserver.docker
 
 networks:
   ioak-net:
-      name: ioak-network
+    name: ioak-network
