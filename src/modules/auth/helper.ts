@@ -97,7 +97,7 @@ export const createSession = async (realm: number, user: any) => {
     type: user.type,
   };
   const appRoot = process.cwd();
-  const privateKey = fs.readFileSync(appRoot + "\\private.pem");
+  const privateKey = fs.readFileSync(appRoot + "/private.pem");
   const refresh_token = jwt.sign(
     {
       realm,
@@ -133,7 +133,7 @@ export const getAccessToken = async (refreshToken: string) => {
   }
   const claims: any = decoded.claims;
   const appRoot = process.cwd();
-  const privateKey = fs.readFileSync(appRoot + "\\private.pem");
+  const privateKey = fs.readFileSync(appRoot + "/private.pem");
   const model = getCollection(claims.realm, sessionCollection, sessionSchema);
   const session = await model.findOne({ session_id: claims.id });
   if (differenceInSeconds(session.eat, new Date()) < 60) {
@@ -176,7 +176,7 @@ export const deleteSessionByRefreshToken = async (
 
 export const decodeToken = async (token: string) => {
   const appRoot = process.cwd();
-  const publicKey = fs.readFileSync(appRoot + "\\public.pem");
+  const publicKey = fs.readFileSync(appRoot + "/public.pem");
   try {
     const res = await jwt.verify(token, publicKey);
     return { outcome: true, token, claims: res };
