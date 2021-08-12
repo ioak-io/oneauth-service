@@ -5,7 +5,7 @@ import {
   checkSystemPermission,
   grantSystemPermission,
   getPermittedSystemResources,
-} from "../role/system/user/service";
+} from "../user/role/SystemPermissionService";
 
 import { getCollection } from "../../lib/dbutils";
 
@@ -22,7 +22,10 @@ export const getClients = async (req: any, res: any) => {
     .filter((item: any) => item.resource_name === "client")
     .map((item: any) => item.resource_id);
   const model = getCollection(selfRealm, clientCollection, clientSchema);
-  const clients = await model.find({ client_id: { $in: permittedClients } });
+  const clients = (await model.find({})).map((item: any) => ({
+    ...item._doc,
+    editRights: permittedClients.includes(item.client_id),
+  }));
   res.status(200);
   res.send(clients);
   res.end();

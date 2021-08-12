@@ -4,7 +4,7 @@ import * as Helper from "./helper";
 import {
   checkSystemPermission,
   getPermittedSystemResources,
-} from "../system/user/service";
+} from "../../user/role/SystemPermissionService";
 import { validateMandatoryFields } from "../../../lib/validation";
 
 const selfRealm = 100;

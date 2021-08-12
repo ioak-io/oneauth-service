@@ -1,9 +1,9 @@
-version: '3.4'
+version: "3.4"
 
 services:
-  mirrorgraphserver:
-    image: mirrorgraphserver
-    container_name: mirrorgraphserver
+  oneauthserver:
+    image: oneauthserver
+    container_name: oneauthserver
     restart: always
     build:
       context: .
@@ -12,15 +12,15 @@ services:
       NODE_ENV: production
       MONGODB_URI: mongodb://mongo.docker:27017
       ONEAUTH_API: https://api.ioak.io:8010
+      APP_URL: https://oneauth-app.ioak.io
       PORT: 8025
     ports:
       - 8025:8025
     networks:
       ioak-net:
         aliases:
-          - mirrorgraphserver.docker
+          - oneauthserver.docker
 
 networks:
   ioak-net:
-      name: ioak-network
-      
+    name: ioak-network

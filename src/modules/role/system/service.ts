@@ -3,9 +3,15 @@ import { systemRoleCollection, systemRoleSchema } from "./model";
 
 const selfRealm = 100;
 
-export const getRealms = async (req: any, res: any) => {
+export const getAllRoles = async (req: any, res: any) => {
+  const model = getCollection(
+    selfRealm,
+    systemRoleCollection,
+    systemRoleSchema
+  );
+  const roles = await model.find({});
   res.status(200);
-  // res.send(realms);
+  res.send(roles);
   res.end();
 };
 

@@ -4,7 +4,7 @@ import { createSequence, nextval } from "../sequence/service";
 export const generateRealmNumber = async () => {
   let realm = await nextval({ field: "realm" });
   if (!realm) {
-    await createSequence({ field: "realm", factor: 1, nextval: 220 });
+    await createSequence({ field: "realm", factor: 1, nextval: 210 });
     realm = await generateRealmNumber();
   }
   return realm;

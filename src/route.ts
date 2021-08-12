@@ -7,9 +7,14 @@ router.get("/", (_: any, res: any) => {
 });
 
 require("./modules/hello/route")(router);
+require("./modules/_seed/route")(router);
 require("./modules/auth/route")(router);
 require("./modules/realm/route")(router);
 require("./modules/client/route")(router);
 require("./modules/role/client/route")(router);
+require("./modules/gridcontrol/route")(router);
+require("./modules/role/system/route")(router);
+require("./modules/user/role/route")(router);
+require("./modules/user/route")(router);
 
 module.exports = router;

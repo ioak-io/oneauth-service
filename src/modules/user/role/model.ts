@@ -1,8 +1,9 @@
 var mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
-const systemRoleUserSchema = new Schema(
+const userRoleSchema = new Schema(
   {
+    client_id: { type: String },
     user_id: { type: String },
     role_id: { type: String },
     resource_name: { type: String },
@@ -11,7 +12,7 @@ const systemRoleUserSchema = new Schema(
   { timestamps: true }
 );
 
-const systemRoleUserCollection = "role-system-user";
+const userRoleCollection = "user.role";
 
 // module.exports = mongoose.model('bookmarks', articleSchema);
-export { systemRoleUserSchema, systemRoleUserCollection };
+export { userRoleSchema, userRoleCollection };

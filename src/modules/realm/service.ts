@@ -4,7 +4,7 @@ import {
   checkSystemPermission,
   grantSystemPermission,
   getPermittedSystemResources,
-} from "../role/system/user/service";
+} from "../user/role/SystemPermissionService";
 import * as Helper from "./helper";
 
 import { getCollection } from "../../lib/dbutils";
