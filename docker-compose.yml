@@ -1,9 +1,9 @@
 version: "3.4"
 
 services:
-  oneauthserver:
-    image: oneauthserver
-    container_name: oneauthserver
+  oneauthservice:
+    image: oneauthservice
+    container_name: oneauthservice
     restart: always
     build:
       context: .
@@ -19,7 +19,7 @@ services:
     networks:
       ioak-net:
         aliases:
-          - oneauthserver.docker
+          - oneauthservice.docker
 
 networks:
   ioak-net:
