@@ -7,7 +7,7 @@ const smtpDefaultSenderEmail =
   process.env.SMTP_DEFAULT_SENDER_EMAIL || "support@ioak.org";
 const smtpDefaultSenderName =
   process.env.SMTP_DEFAULT_SENDER_NAME || "Ioak Support";
-const smtpPassword = process.env.SMTP_PASSWORD || "yy9wjMw1eVbv";
+const smtpPassword = process.env.SMTP_PASSWORD || "qNWHvTRpJFWs";
 
 const transporterConfig = {
   host: smtpHost,
