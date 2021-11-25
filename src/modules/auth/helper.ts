@@ -42,9 +42,9 @@ export const sendEmailConfirmationLink = async (
   });
   let link = appUrl;
   if (realmId === selfRealm) {
-    link += "/#/login?type=confirmemail&auth=" + code;
+    link += "/#/login/oa?type=confirmemail&auth=" + code;
   } else {
-    link += "/#/realm/" + realmId + "/login?type=confirmemail&auth=" + code;
+    link += "/#/realm/" + realmId + "/login/oa?type=confirmemail&auth=" + code;
   }
 
   const appRoot = process.cwd();
