@@ -49,7 +49,7 @@ export const sendEmailConfirmationLink = async (
 
   const appRoot = process.cwd();
   const emailBodyTemplate = fs.readFileSync(
-    appRoot + "\\src\\emailtemplate\\ConfirmEmail.html"
+    appRoot + "/src/emailtemplate/ConfirmEmail.html"
   );
 
   const emailBody = convertMessage(emailBodyTemplate.toString(), [
