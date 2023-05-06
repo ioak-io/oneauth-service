@@ -1,0 +1,7 @@
+{
+    "swagger" : "2.0",
+    "basePath": "https://localhost:4010/api",
+    "paths": [
+        "/realm"
+    ]
+}

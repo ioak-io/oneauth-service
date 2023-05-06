@@ -7,8 +7,11 @@ const { ApolloServer } = require("apollo-server-express");
 import { authorize, authorizeApi } from "./middlewares";
 import mongoose from "mongoose";
 import { initializeSequences } from "./startup";
+import { apiDocumentation } from "./docs/apidoc";
 const express = require("express");
 const cors = require("cors");
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 
 var ApiRoute = require("./route");
 
@@ -24,6 +27,9 @@ mongoose.connect(databaseUri, {
 mongoose.pluralize(undefined);
 
 const app = express();
+
+// app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(apiDocumentation));
 
 const server = new ApolloServer({
   typeDefs: [gqlScalarSchema.typeDefs, userSchema.typeDefs],
@@ -65,8 +71,7 @@ app.use((_: any, res: any) => {
 
 app.listen({ port: process.env.PORT || 4010 }, () =>
   console.log(
-    `🚀 Server ready at http://localhost:${process.env.PORT || 4010}${
-      server.graphqlPath
+    `🚀 Server ready at http://localhost:${process.env.PORT || 4010}${server.graphqlPath
     }`
   )
 );
