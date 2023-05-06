@@ -23,4 +23,4 @@ services:
 
 networks:
   ioak-net:
-    name: ioak-network
+    external: true
