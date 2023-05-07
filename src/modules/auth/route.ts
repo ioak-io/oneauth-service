@@ -19,8 +19,10 @@ import {
 const selfRealm = 100;
 
 module.exports = function (router: any) {
-  router.post("/auth/signup", signup);
-  router.post("/auth/send-verify-email", emailVerificationLink);
+  router.post("/:realm/auth/signup", (req: any, res: any) =>
+    signup(req.params.realm, req, res));
+  router.post("/:realm/auth/verify-email/resend", (req: any, res: any) =>
+    emailVerificationLink(req.params.realm, req, res));
   router.post("/auth/verify-email", verifyEmail);
   router.post("/auth/authorize", signin);
   router.post("/auth/token", issueToken);

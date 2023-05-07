@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { decodeToken } from "./modules/auth/helper";
+import { decodeToken } from "./lib/authutils";
 
 const jwtsecret = "jwtsecret";
 

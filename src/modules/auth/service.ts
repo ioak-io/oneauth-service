@@ -7,21 +7,20 @@ import { getCollection } from "../../lib/dbutils";
 
 const selfRealm = 100;
 
-export const signup = async (req: any, res: any) => {
+export const signup = async (realm: number, req: any, res: any) => {
   const payload = req.body;
   if (
     !validateMandatoryFields(res, payload, [
       "email",
       "password",
       "given_name",
-      "family_name",
-      "realm",
+      "family_name"
     ])
   ) {
     return;
   }
-  const model = getCollection(payload.realm, userCollection, userSchema);
-  const user = await model.findOne({ email: payload.email });
+  const model = getCollection(realm, userCollection, userSchema);
+  const user = await model.findOne({ email: payload.email.toLowerCase() });
   if (user) {
     res.status(403);
     res.send({ error: { message: "User with same email already exists" } });
@@ -29,7 +28,7 @@ export const signup = async (req: any, res: any) => {
     return;
   }
   const userData = {
-    email: payload.email,
+    email: payload.email.toLowerCase(),
     given_name: payload.given_name,
     family_name: payload.family_name,
     name: payload.name || `${payload.given_name} ${payload.family_name}`,
@@ -41,21 +40,21 @@ export const signup = async (req: any, res: any) => {
     hash: await Helper.getHash(payload.password),
   };
   const outcome = await model.create(userData);
-  Helper.sendEmailConfirmationLink(payload.realm, outcome._id);
+  Helper.sendEmailConfirmationLink(realm, outcome._id);
   res.status(200);
   res.send(outcome);
   res.end();
 };
 
-export const emailVerificationLink = async (req: any, res: any) => {
+export const emailVerificationLink = async (realm: number, req: any, res: any) => {
   const payload = req.body;
-  if (!validateMandatoryFields(res, payload, ["realm", "email"])) {
+  if (!validateMandatoryFields(res, payload, ["email"])) {
     return;
   }
   const email = req.body.email;
-  const model = getCollection(payload.realm, userCollection, userSchema);
+  const model = getCollection(realm, userCollection, userSchema);
   const user: any = await model.findOne({
-    email: payload.email,
+    email: payload.email.toLowerCase(),
     type: "oneauth",
   });
   if (!user) {
@@ -63,10 +62,9 @@ export const emailVerificationLink = async (req: any, res: any) => {
     res.end();
     return;
   }
-  console.log(user);
   if (!user.email_verified) {
     const outcome = await Helper.sendEmailConfirmationLink(
-      payload.realm,
+      realm,
       user._id
     );
     res.status(200);
