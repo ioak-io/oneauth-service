@@ -77,12 +77,8 @@ export const emailVerificationLink = async (realm: number, req: any, res: any) =
   res.end();
 };
 
-export const verifyEmail = async (req: any, res: any) => {
-  const payload = req.body;
-  if (!validateMandatoryFields(res, payload, ["realm", "code"])) {
-    return;
-  }
-  const outcome = await Helper.verifyEmail(payload.realm, payload.code);
+export const verifyEmail = async (realm: number, req: any, res: any) => {
+  const outcome = await Helper.verifyEmail(realm, req.params.code);
   if (!outcome) {
     res.status(404);
     res.send({ error: { message: "Invalid verification link" } });
@@ -96,21 +92,20 @@ export const verifyEmail = async (req: any, res: any) => {
   res.end();
 };
 
-export const signin = async (req: any, res: any) => {
+export const signin = async (realm: number, req: any, res: any) => {
   const payload = req.body;
   if (
     !validateMandatoryFields(res, payload, [
       "email",
       "password",
-      "realm",
       "response_type",
     ])
   ) {
     return;
   }
-  const model = getCollection(payload.realm, userCollection, userSchema);
+  const model = getCollection(realm, userCollection, userSchema);
   const user: any = await model.findOne({
-    email: payload.email,
+    email: payload.email.toLowerCase(),
     type: "oneauth",
   });
   if (!user) {
@@ -135,7 +130,7 @@ export const signin = async (req: any, res: any) => {
   }
 
   const { session_id, refresh_token } = await Helper.createSession(
-    payload.realm,
+    realm,
     user
   );
 
@@ -151,12 +146,11 @@ export const signin = async (req: any, res: any) => {
   res.end();
 };
 
-export const issueToken = async (req: any, res: any) => {
+export const issueToken = async (realm: number, req: any, res: any) => {
   const payload = req.body;
   if (
     !validateMandatoryFields(res, payload, [
       "grant_type",
-      "realm",
       "refresh_token",
     ])
   ) {
@@ -230,7 +224,7 @@ export const deleteSession = async (realmId: number, req: any, res: any) => {
   res.end();
 };
 
-export const decodeToken = async (req: any, res: any) => {
+export const decodeToken = async (realm: number, req: any, res: any) => {
   res.status(200);
   res.send({ ...req.user });
   res.end();
@@ -255,9 +249,12 @@ export const resetPasswordLink = async (
   res: any
 ) => {
   const payload = req.body;
+  if (!validateMandatoryFields(res, payload, ["email"])) {
+    return;
+  }
   const model = getCollection(realmId, userCollection, userSchema);
   const user = await model.findOne({
-    email: payload.email,
+    email: payload.email.toLowerCase(),
     email_verified: true,
   });
   if (!user) {
@@ -282,20 +279,35 @@ export const verifyResetCode = async (realmId: number, req: any, res: any) => {
 };
 
 export const resetPassword = async (realmId: number, req: any, res: any) => {
+  const payload = req.body;
+  if (!validateMandatoryFields(res, payload, ["password"])) {
+    return;
+  }
   const outcome = await Helper.resetPassword(
     realmId,
     req.params.code,
-    req.body.password
+    payload.password
   );
+  if (!outcome) {
+    res.status(404);
+    res.send({ error: { message: "Invalid password reset link" } });
+    res.end();
+    return;
+  }
   res.status(200);
-  res.send({ outcome });
+  res.send({
+    message: "Password updated",
+  });
   res.end();
 };
 
 export const changePassword = async (realmId: number, req: any, res: any) => {
   const payload = req.body;
+  if (!validateMandatoryFields(res, payload, ["oldPassword", "newPassword"])) {
+    return;
+  }
   const model = getCollection(realmId, userCollection, userSchema);
-  const user: any = await model.findOne({ _id: req.user.userId });
+  const user: any = await model.findOne({ _id: req.user.user_id });
   if (!user) {
     res.status(404);
     res.end();
@@ -307,7 +319,7 @@ export const changePassword = async (realmId: number, req: any, res: any) => {
   );
   if (!verificationStatus) {
     res.status(401);
-    res.send("Unauthorized");
+    res.send("Existing password is incorrect");
     res.end();
     return;
   }
@@ -319,5 +331,6 @@ export const changePassword = async (realmId: number, req: any, res: any) => {
   );
 
   res.status(200);
+  res.send("Password updated");
   res.end();
 };

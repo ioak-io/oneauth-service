@@ -18,7 +18,8 @@ import { sendMail, convertMessage } from "../../lib/mailutils";
 import { userCollection, userSchema } from "../user/model";
 
 const selfRealm = 100;
-const appUrl = process.env.APP_URL || "http://localhost:3010";
+// const appUrl = process.env.APP_URL || "http://localhost:3010";
+const oneauthApiUrl = process.env.ONEAUTH_API || "http://localhost:4010";
 
 export const sendEmailConfirmationLink = async (
   realmId: number,
@@ -40,11 +41,11 @@ export const sendEmailConfirmationLink = async (
     userId: user?.id,
     code,
   });
-  let link = appUrl;
-  if (realmId === selfRealm) {
-    link += "/#/login/oa?type=confirmemail&auth=" + code;
+  let link = oneauthApiUrl;
+  if (!realmId) {
+    link += `/api-internal/auth/verify-email/${code}`;
   } else {
-    link += "/#/realm/" + realmId + "/login/oa?type=confirmemail&auth=" + code;
+    link += `/api/${realmId}/auth/verify-email/${code}`;
   }
 
   const appRoot = process.cwd();
@@ -177,7 +178,6 @@ export const deleteSessionByRefreshToken = async (
 export const decodeToken = async (token: string) => {
   const appRoot = process.cwd();
   const publicKey = fs.readFileSync(appRoot + "/public.pem");
-  console.log(publicKey);
   try {
     const res = await jwt.verify(token, publicKey);
     return { outcome: true, token, claims: res };
@@ -212,11 +212,11 @@ export const resetPasswordLink = async (realmId: number, user: any) => {
     userId: user.id,
     resetCode,
   });
-  let resetLink = appUrl;
-  if (realmId === selfRealm) {
-    resetLink += "/#/login?type=reset&auth=" + resetCode;
+  let resetLink = oneauthApiUrl;
+  if (!realmId) {
+    resetLink += `/api-internal/auth/reset-password/${resetCode}`;
   } else {
-    resetLink += "/#/realm/" + realmId + "/login?type=reset&auth=" + resetCode;
+    resetLink += `/api/${realmId}/auth/reset-password/${resetCode}`;
   }
 
   const appRoot = process.cwd();

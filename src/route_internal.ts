@@ -1,11 +1,11 @@
-const express = require("express");
-const router = express.Router();
+const expressInternal = require("express");
+const routerInternal = expressInternal.Router();
 
-router.get("/", (_: any, res: any) => {
+routerInternal.get("/", (_: any, res: any) => {
   res.send("v1.0.0");
   res.end();
 });
 
-require("./modules/hello/route")(router);
+require("./modules/hello/route")(routerInternal);
 
-module.exports = router;
+module.exports = routerInternal;
