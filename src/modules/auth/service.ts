@@ -245,7 +245,7 @@ export const decodeSession = async (req: any, res: any) => {
 export const resetPasswordLink = async (
   req: any,
   res: any,
-  realm: number,
+  realm?: number,
 ) => {
   const payload = req.body;
   if (!validateMandatoryFields(res, payload, ["email"])) {
@@ -262,22 +262,21 @@ export const resetPasswordLink = async (
     return;
   }
   const { resetCode, resetLink } = await Helper.resetPasswordLink(
-    realm,
-    user
+    user, realm
   );
   res.status(200);
   res.send({ resetCode, resetLink });
   res.end();
 };
 
-export const verifyResetCode = async (realm: number, req: any, res: any) => {
-  const outcome = await Helper.verifyResetCode(realm, req.params.code);
+export const verifyResetCode = async (req: any, res: any, realm?: number) => {
+  const outcome = await Helper.verifyResetCode(req.params.code, realm);
   res.status(200);
   res.send({ outcome });
   res.end();
 };
 
-export const resetPassword = async (req: any, res: any, realm: number) => {
+export const resetPassword = async (req: any, res: any, realm?: number) => {
   const payload = req.body;
   if (!validateMandatoryFields(res, payload, ["password"])) {
     return;
@@ -300,7 +299,7 @@ export const resetPassword = async (req: any, res: any, realm: number) => {
   res.end();
 };
 
-export const changePassword = async (req: any, res: any, realm: number) => {
+export const changePassword = async (req: any, res: any, realm?: number) => {
   const payload = req.body;
   if (!validateMandatoryFields(res, payload, ["oldPassword", "newPassword"])) {
     return;

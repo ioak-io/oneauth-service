@@ -201,7 +201,7 @@ export const getHash = async (password: string) => {
   return await bcrypt.hash(password, salt);
 };
 
-export const resetPasswordLink = async (realm: number, user: any) => {
+export const resetPasswordLink = async (user: any, realm?: number) => {
   const resetPasswordModel = getCollection(
     resetpasswordCollection,
     resetpasswordSchema,
@@ -238,7 +238,7 @@ export const resetPasswordLink = async (realm: number, user: any) => {
   return { resetCode, resetLink };
 };
 
-export const verifyResetCode = async (realm: number, resetCode: string) => {
+export const verifyResetCode = async (resetCode: string, realm?: number) => {
   const resetPasswordModel = getCollection(
     resetpasswordCollection,
     resetpasswordSchema,

@@ -19,25 +19,25 @@ import {
 const selfRealm = 100;
 
 module.exports = function (router: any) {
-  router.post("/user/auth/signup", (req: any, res: any) =>
+  router.post("/auth/signup", (req: any, res: any) =>
     signup(req, res));
-  router.post("/user/auth/verify-email/resend", (req: any, res: any) =>
+  router.post("/auth/verify-email/resend", (req: any, res: any) =>
     emailVerificationLink(req, res));
-  router.post("/user/auth/verify-email/:code", (req: any, res: any) =>
+  router.post("/auth/verify-email/:code", (req: any, res: any) =>
     verifyEmail(req, res));
-  router.post("/user/auth/signin", (req: any, res: any) =>
+  router.post("/auth/signin", (req: any, res: any) =>
     signin(req, res));
-  router.post("/user/auth/token", (req: any, res: any) =>
+  router.post("/auth/token", (req: any, res: any) =>
     issueToken(req, res));
-  router.get("/user/auth/token/decode", authorizeApi, (req: any, res: any) =>
+  router.get("/auth/token/decode", authorizeApi, (req: any, res: any) =>
     decodeToken(req, res));
-  router.post("/user/auth/reset-password-link", (req: any, res: any) =>
+  router.post("/auth/reset-password-link", (req: any, res: any) =>
     resetPasswordLink(req, res)
   );
-  router.post("/user/auth/reset-password/:code", (req: any, res: any) =>
+  router.post("/auth/reset-password/:code", (req: any, res: any) =>
     resetPassword(req, res)
   );
-  router.post("/user/auth/change-password", authorizeApi, (req: any, res: any) =>
+  router.post("/auth/change-password", authorizeApi, (req: any, res: any) =>
     changePassword(req, res)
   );
 
@@ -50,7 +50,7 @@ module.exports = function (router: any) {
     deleteSession(selfRealm, req, res)
   );
   router.get("/auth/oa/session/:id/decode", (req: any, res: any) =>
-    decodeSession(selfRealm, req, res)
+    decodeSession(req, res)
   );
   router.post("/auth/oa/reset", (req: any, res: any) =>
     resetPasswordLink(selfRealm, req, res)

@@ -7,6 +7,7 @@ routerInternal.get("/", (_: any, res: any) => {
 });
 
 require("./modules/hello/route")(routerInternal);
+require("./modules/auth/route_internal")(routerInternal);
 require("./modules/apikey/route")(routerInternal);
 
 module.exports = routerInternal;
