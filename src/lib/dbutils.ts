@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 
 export const getCollection = (
-  realm: number,
   collection: any,
-  schema: any
+  schema: any,
+  realm?: number,
 ): any => {
   const db = mongoose.connection.useDb(`oa${realm}`);
   return db.model(collection, schema);

@@ -7,7 +7,7 @@ import { getCollection } from "../../lib/dbutils";
 
 const selfRealm = 100;
 
-export const signup = async (realm: number, req: any, res: any) => {
+export const signup = async (req: any, res: any, realm?: number) => {
   const payload = req.body;
   if (
     !validateMandatoryFields(res, payload, [
@@ -19,7 +19,7 @@ export const signup = async (realm: number, req: any, res: any) => {
   ) {
     return;
   }
-  const model = getCollection(realm, userCollection, userSchema);
+  const model = getCollection(userCollection, userSchema, realm);
   const user = await model.findOne({ email: payload.email.toLowerCase() });
   if (user) {
     res.status(403);
@@ -40,19 +40,19 @@ export const signup = async (realm: number, req: any, res: any) => {
     hash: await Helper.getHash(payload.password),
   };
   const outcome = await model.create(userData);
-  Helper.sendEmailConfirmationLink(realm, outcome._id);
+  Helper.sendEmailConfirmationLink(outcome._id, realm);
   res.status(200);
   res.send(outcome);
   res.end();
 };
 
-export const emailVerificationLink = async (realm: number, req: any, res: any) => {
+export const emailVerificationLink = async (req: any, res: any, realm?: number) => {
   const payload = req.body;
   if (!validateMandatoryFields(res, payload, ["email"])) {
     return;
   }
   const email = req.body.email;
-  const model = getCollection(realm, userCollection, userSchema);
+  const model = getCollection(userCollection, userSchema, realm);
   const user: any = await model.findOne({
     email: payload.email.toLowerCase(),
     type: "oneauth",
@@ -64,8 +64,7 @@ export const emailVerificationLink = async (realm: number, req: any, res: any) =
   }
   if (!user.email_verified) {
     const outcome = await Helper.sendEmailConfirmationLink(
-      realm,
-      user._id
+      user._id, realm
     );
     res.status(200);
     res.send(outcome);
@@ -77,8 +76,8 @@ export const emailVerificationLink = async (realm: number, req: any, res: any) =
   res.end();
 };
 
-export const verifyEmail = async (realm: number, req: any, res: any) => {
-  const outcome = await Helper.verifyEmail(realm, req.params.code);
+export const verifyEmail = async (req: any, res: any, realm?: number) => {
+  const outcome = await Helper.verifyEmail(req.params.code, realm);
   if (!outcome) {
     res.status(404);
     res.send({ error: { message: "Invalid verification link" } });
@@ -92,7 +91,8 @@ export const verifyEmail = async (realm: number, req: any, res: any) => {
   res.end();
 };
 
-export const signin = async (realm: number, req: any, res: any) => {
+export const signin = async (req: any, res: any, realm?: number) => {
+  console.log("----", realm);
   const payload = req.body;
   if (
     !validateMandatoryFields(res, payload, [
@@ -103,7 +103,7 @@ export const signin = async (realm: number, req: any, res: any) => {
   ) {
     return;
   }
-  const model = getCollection(realm, userCollection, userSchema);
+  const model = getCollection(userCollection, userSchema, realm);
   const user: any = await model.findOne({
     email: payload.email.toLowerCase(),
     type: "oneauth",
@@ -130,8 +130,7 @@ export const signin = async (realm: number, req: any, res: any) => {
   }
 
   const { session_id, refresh_token } = await Helper.createSession(
-    realm,
-    user
+    user, realm
   );
 
   if (payload.response_type === "code") {
@@ -146,7 +145,7 @@ export const signin = async (realm: number, req: any, res: any) => {
   res.end();
 };
 
-export const issueToken = async (realm: number, req: any, res: any) => {
+export const issueToken = async (req: any, res: any, realm?: number) => {
   const payload = req.body;
   if (
     !validateMandatoryFields(res, payload, [
@@ -198,8 +197,8 @@ export const logout = async (req: any, res: any) => {
   res.end();
 };
 
-export const validateSession = async (realmId: number, req: any, res: any) => {
-  const session: any = await Helper.validateSession(realmId, req.params.id);
+export const validateSession = async (realm: number, req: any, res: any) => {
+  const session: any = await Helper.validateSession(realm, req.params.id);
   if (!session) {
     res.status(404);
     res.send("Session not found");
@@ -211,7 +210,7 @@ export const validateSession = async (realmId: number, req: any, res: any) => {
   res.end();
 };
 
-export const deleteSession = async (realmId: number, req: any, res: any) => {
+export const deleteSession = async (realm: number, req: any, res: any) => {
   const outcome = await Helper.deleteSession(selfRealm, req.params.id);
   if (outcome.deletedCount === 0) {
     res.status(404);
@@ -224,13 +223,13 @@ export const deleteSession = async (realmId: number, req: any, res: any) => {
   res.end();
 };
 
-export const decodeToken = async (realm: number, req: any, res: any) => {
+export const decodeToken = async (req: any, res: any) => {
   res.status(200);
   res.send({ ...req.user });
   res.end();
 };
 
-export const decodeSession = async (realmId: number, req: any, res: any) => {
+export const decodeSession = async (req: any, res: any) => {
   const outcome = await Helper.decodeSession(selfRealm, req.params.id);
   if (!outcome) {
     res.status(404);
@@ -244,15 +243,15 @@ export const decodeSession = async (realmId: number, req: any, res: any) => {
 };
 
 export const resetPasswordLink = async (
-  realmId: number,
   req: any,
-  res: any
+  res: any,
+  realm: number,
 ) => {
   const payload = req.body;
   if (!validateMandatoryFields(res, payload, ["email"])) {
     return;
   }
-  const model = getCollection(realmId, userCollection, userSchema);
+  const model = getCollection(userCollection, userSchema, realm);
   const user = await model.findOne({
     email: payload.email.toLowerCase(),
     email_verified: true,
@@ -263,7 +262,7 @@ export const resetPasswordLink = async (
     return;
   }
   const { resetCode, resetLink } = await Helper.resetPasswordLink(
-    realmId,
+    realm,
     user
   );
   res.status(200);
@@ -271,22 +270,22 @@ export const resetPasswordLink = async (
   res.end();
 };
 
-export const verifyResetCode = async (realmId: number, req: any, res: any) => {
-  const outcome = await Helper.verifyResetCode(realmId, req.params.code);
+export const verifyResetCode = async (realm: number, req: any, res: any) => {
+  const outcome = await Helper.verifyResetCode(realm, req.params.code);
   res.status(200);
   res.send({ outcome });
   res.end();
 };
 
-export const resetPassword = async (realmId: number, req: any, res: any) => {
+export const resetPassword = async (req: any, res: any, realm: number) => {
   const payload = req.body;
   if (!validateMandatoryFields(res, payload, ["password"])) {
     return;
   }
   const outcome = await Helper.resetPassword(
-    realmId,
     req.params.code,
-    payload.password
+    payload.password,
+    realm
   );
   if (!outcome) {
     res.status(404);
@@ -301,12 +300,12 @@ export const resetPassword = async (realmId: number, req: any, res: any) => {
   res.end();
 };
 
-export const changePassword = async (realmId: number, req: any, res: any) => {
+export const changePassword = async (req: any, res: any, realm: number) => {
   const payload = req.body;
   if (!validateMandatoryFields(res, payload, ["oldPassword", "newPassword"])) {
     return;
   }
-  const model = getCollection(realmId, userCollection, userSchema);
+  const model = getCollection(userCollection, userSchema, realm);
   const user: any = await model.findOne({ _id: req.user.user_id });
   if (!user) {
     res.status(404);

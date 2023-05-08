@@ -22,16 +22,16 @@ const selfRealm = 100;
 const oneauthApiUrl = process.env.ONEAUTH_API || "http://localhost:4010";
 
 export const sendEmailConfirmationLink = async (
-  realmId: number,
-  userId: string
+  userId: string,
+  realm?: number
 ) => {
-  const model = getCollection(realmId, userCollection, userSchema);
+  const model = getCollection(userCollection, userSchema, realm);
   const user = await model.findOne({ _id: userId });
 
   const confirmemailModel = getCollection(
-    realmId,
     confirmemailCollection,
-    confirmemailSchema
+    confirmemailSchema,
+    realm
   );
   const deleteResponse = await confirmemailModel.deleteOne({
     userId: user?.id,
@@ -42,10 +42,10 @@ export const sendEmailConfirmationLink = async (
     code,
   });
   let link = oneauthApiUrl;
-  if (!realmId) {
+  if (!realm) {
     link += `/api-internal/auth/verify-email/${code}`;
   } else {
-    link += `/api/${realmId}/auth/verify-email/${code}`;
+    link += `/api/${realm}/auth/verify-email/${code}`;
   }
 
   const appRoot = process.cwd();
@@ -66,17 +66,17 @@ export const sendEmailConfirmationLink = async (
   return { code, link };
 };
 
-export const verifyEmail = async (realmId: number, code: string) => {
+export const verifyEmail = async (code: string, realm?: number) => {
   const confirmemailModel = getCollection(
-    realmId,
     confirmemailCollection,
-    confirmemailSchema
+    confirmemailSchema,
+    realm
   );
   const link = await confirmemailModel.findOne({ code });
   if (!link) {
     return false;
   }
-  const model = getCollection(realmId, userCollection, userSchema);
+  const model = getCollection(userCollection, userSchema, realm);
   const res = await model.updateOne(
     { _id: link.userId },
     { email_verified: true }
@@ -85,9 +85,10 @@ export const verifyEmail = async (realmId: number, code: string) => {
   return res.nModified === 1;
 };
 
-export const createSession = async (realm: number, user: any) => {
+export const createSession = async (user: any, realm?: number) => {
   const session_id = uuidv4();
-  const model = getCollection(realm, sessionCollection, sessionSchema);
+  const model = getCollection(sessionCollection, sessionSchema,
+    realm);
   const claims = {
     user_id: user.id,
     given_name: user.given_name,
@@ -135,7 +136,7 @@ export const getAccessToken = async (refreshToken: string) => {
   const claims: any = decoded.claims;
   const appRoot = process.cwd();
   const privateKey = fs.readFileSync(appRoot + "/private.pem");
-  const model = getCollection(claims.realm, sessionCollection, sessionSchema);
+  const model = getCollection(sessionCollection, sessionSchema, claims.realm);
   const session = await model.findOne({ session_id: claims.id });
   if (differenceInSeconds(session.eat, new Date()) < 60) {
     return null;
@@ -156,14 +157,14 @@ export const getAccessToken = async (refreshToken: string) => {
   return access_token;
 };
 
-export const validateSession = async (realmId: number, sessionId: string) => {
-  const model = getCollection(realmId, sessionCollection, sessionSchema);
+export const validateSession = async (realm: number, sessionId: string) => {
+  const model = getCollection(sessionCollection, sessionSchema, realm);
   const session = await model.findOne({ sessionId });
   return session;
 };
 
 export const deleteSession = async (realm: number, session_id: string) => {
-  const model = getCollection(realm, sessionCollection, sessionSchema);
+  const model = getCollection(sessionCollection, sessionSchema, realm);
   return await model.deleteOne({ session_id });
 };
 
@@ -171,7 +172,7 @@ export const deleteSessionByRefreshToken = async (
   realm: number,
   refresh_token: string
 ) => {
-  const model = getCollection(realm, sessionCollection, sessionSchema);
+  const model = getCollection(sessionCollection, sessionSchema, realm);
   return await model.deleteOne({ refresh_token });
 };
 
@@ -187,8 +188,8 @@ export const decodeToken = async (token: string) => {
   }
 };
 
-export const decodeSession = async (realmId: number, sessionId: string) => {
-  const session: any = await validateSession(realmId, sessionId);
+export const decodeSession = async (realm: number, sessionId: string) => {
+  const session: any = await validateSession(realm, sessionId);
   if (!session) {
     return session;
   }
@@ -200,11 +201,11 @@ export const getHash = async (password: string) => {
   return await bcrypt.hash(password, salt);
 };
 
-export const resetPasswordLink = async (realmId: number, user: any) => {
+export const resetPasswordLink = async (realm: number, user: any) => {
   const resetPasswordModel = getCollection(
-    realmId,
     resetpasswordCollection,
-    resetpasswordSchema
+    resetpasswordSchema,
+    realm
   );
   const deleteResponse = resetPasswordModel.deleteOne({ userId: user.id });
   const resetCode = uuidv4();
@@ -213,10 +214,10 @@ export const resetPasswordLink = async (realmId: number, user: any) => {
     resetCode,
   });
   let resetLink = oneauthApiUrl;
-  if (!realmId) {
+  if (!realm) {
     resetLink += `/api-internal/auth/reset-password/${resetCode}`;
   } else {
-    resetLink += `/api/${realmId}/auth/reset-password/${resetCode}`;
+    resetLink += `/api/${realm}/auth/reset-password/${resetCode}`;
   }
 
   const appRoot = process.cwd();
@@ -237,25 +238,25 @@ export const resetPasswordLink = async (realmId: number, user: any) => {
   return { resetCode, resetLink };
 };
 
-export const verifyResetCode = async (realmId: number, resetCode: string) => {
+export const verifyResetCode = async (realm: number, resetCode: string) => {
   const resetPasswordModel = getCollection(
-    realmId,
     resetpasswordCollection,
-    resetpasswordSchema
+    resetpasswordSchema,
+    realm
   );
   const res = await resetPasswordModel.findOne({ resetCode });
   return !!res;
 };
 
 export const resetPassword = async (
-  realmId: number,
   resetCode: string,
-  newPassword: string
+  newPassword: string,
+  realm?: number
 ) => {
   const resetPasswordModel = getCollection(
-    realmId,
     resetpasswordCollection,
-    resetpasswordSchema
+    resetpasswordSchema,
+    realm
   );
   const resetLink = await resetPasswordModel.findOne({ resetCode });
 
@@ -263,7 +264,7 @@ export const resetPassword = async (
     return false;
   }
 
-  const model = getCollection(realmId, userCollection, userSchema);
+  const model = getCollection(userCollection, userSchema, realm);
   const outcome = await model.updateOne(
     { _id: resetLink.userId },
     {
