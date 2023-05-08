@@ -123,12 +123,12 @@ export const createSession = async (user: any, realm?: number) => {
   return { session_id, refresh_token };
 };
 
-export const getAccessToken = async (refreshToken: string) => {
+export const getAccessToken = async (refreshToken: string, realm?: number) => {
   const decoded: any = await decodeToken(refreshToken);
   if (
     !decoded.outcome ||
     !decoded.claims ||
-    !decoded.claims.realm ||
+    (realm && !decoded.claims.realm) ||
     !decoded.claims.id
   ) {
     return null;

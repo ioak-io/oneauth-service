@@ -92,7 +92,6 @@ export const verifyEmail = async (req: any, res: any, realm?: number) => {
 };
 
 export const signin = async (req: any, res: any, realm?: number) => {
-  console.log("----", realm);
   const payload = req.body;
   if (
     !validateMandatoryFields(res, payload, [
@@ -140,7 +139,7 @@ export const signin = async (req: any, res: any, realm?: number) => {
     return;
   }
   res.status(200);
-  const access_token = await Helper.getAccessToken(refresh_token);
+  const access_token = await Helper.getAccessToken(refresh_token, realm);
   res.send({ token_type: "Bearer", access_token, refresh_token });
   res.end();
 };
@@ -157,7 +156,7 @@ export const issueToken = async (req: any, res: any, realm?: number) => {
   }
 
   if (payload.grant_type === "refresh_token") {
-    const access_token = await Helper.getAccessToken(payload.refresh_token);
+    const access_token = await Helper.getAccessToken(payload.refresh_token, realm);
     if (!access_token) {
       res.status(400);
       res.send({ error: { message: "Refresh token invalid or expired" } });
