@@ -9,6 +9,16 @@ export const getRoles = async (realm?: number) => {
   return await model.find();
 };
 
+export const getRoleByName = async (name: string, realm?: number) => {
+  const model = getCollection(roleCollection, roleSchema, realm);
+
+  const roles = await model.find({ name });
+  if (roles.length > 0) {
+    return roles[0];
+  }
+  return null;
+};
+
 export const addRole = async (
   name: string,
   realm?: number,

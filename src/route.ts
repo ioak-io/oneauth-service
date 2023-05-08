@@ -8,5 +8,6 @@ router.get("/", (_: any, res: any) => {
 
 require("./modules/hello/route")(router);
 require("./modules/auth/route")(router);
+require("./modules/user/role/route")(router);
 
 module.exports = router;
