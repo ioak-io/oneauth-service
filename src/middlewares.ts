@@ -25,6 +25,7 @@ export const authorizeApi = async (req: any, res: any, next: any) => {
     if (!data.outcome) {
       return res.sendStatus(401);
     }
+    console.log("-", data.claims)
     req.user = data.claims;
     next();
   } catch (err) {

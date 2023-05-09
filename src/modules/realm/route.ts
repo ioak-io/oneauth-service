@@ -10,8 +10,8 @@ import {
 module.exports = function (router: any) {
   router.get("/realm", authorizeApi, getRealms);
   router.post("/realm", authorizeApi, createRealm);
+  router.put("/realm/:realm", authorizeApi, updateRealm);
 
   router.get("/realm/introspect", introspect);
   router.get("/realm/:realm", getRealm);
-  router.put("/realm/:realm", authorizeApi, updateRealm);
 };

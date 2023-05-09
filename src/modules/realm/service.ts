@@ -70,33 +70,27 @@ export const getRealm = async (req: any, res: any) => {
 export const updateRealm = async (req: any, res: any) => {
   const payload = req.body;
   const realm = req.params.realm;
+  const permissionMap = await UserRoleHelper.getPermissionsByUserId(req.user.user_id);
+  const authorizedRealms = permissionMap['ADMIN'];
+  if (!authorizedRealms.includes(realm)) {
+    res.status(403);
+    res.send({
+      error: {
+        message:
+          "Not authorized to perform requested action on the chosen resource",
+      },
+    });
+    res.end();
+    return;
+  }
   if (!validateMandatoryFields(res, payload, ["name", "description"])) {
     return;
   }
 
-  // if (
-  //   !(await checkSystemPermission({
-  //     name: "system-admin",
-  //     resource_name: "realm",
-  //     resource_id: realm,
-  //     user_id: req.user.user_id,
-  //   }))
-  // ) {
-  //   res.status(403);
-  //   res.send({
-  //     error: {
-  //       message:
-  //         "Not authorized to perform requested action on the chosen resource",
-  //     },
-  //   });
-  //   res.end();
-  //   return;
-  // }
-
   const model = getCollection(realmCollection, realmSchema);
   const outcome = await model.updateOne({ realm }, { ...payload, realm });
   res.status(200);
-  res.send({ ...payload, realm });
+  res.send(await model.findOne({realm}));
   res.end();
 };
 

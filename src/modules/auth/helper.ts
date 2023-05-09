@@ -110,6 +110,7 @@ export const createSession = async (user: any, realm?: number) => {
     nickname: user.nickname,
     email: user.email,
     type: user.type,
+    permissions: await UserRoleHelper.getPermissionsByUserId(user.id, realm)
   };
   const appRoot = process.cwd();
   const privateKey = fs.readFileSync(appRoot + "/private.pem");
