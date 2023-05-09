@@ -16,6 +16,9 @@ import {
 import { getCollection } from "../../lib/dbutils";
 import { sendMail, convertMessage } from "../../lib/mailutils";
 import { userCollection, userSchema } from "../user/model";
+import * as UserRoleHelper from '../user/role/helper';
+import * as RoleHelper from '../role/helper';
+import { isEmptyOrSpaces } from "../../lib/Utils";
 
 const selfRealm = 100;
 // const appUrl = process.env.APP_URL || "http://localhost:3010";
@@ -65,6 +68,16 @@ export const sendEmailConfirmationLink = async (
 
   return { code, link };
 };
+
+export const getPermissions = async (
+  userId: string,
+  realm?: number
+) => {
+  const roles = await RoleHelper.getRoles(realm);
+  const roleMap: any = {};
+  roles.forEach((item: any) => roleMap[item._id] = item.name);
+  return await UserRoleHelper.getPermissionsByUserId(userId, realm);
+}
 
 export const verifyEmail = async (code: string, realm?: number) => {
   const confirmemailModel = getCollection(
@@ -180,8 +193,9 @@ export const decodeToken = async (token: string) => {
   const appRoot = process.cwd();
   const publicKey = fs.readFileSync(appRoot + "/public.pem");
   try {
-    const res = await jwt.verify(token, publicKey);
-    return { outcome: true, token, claims: res };
+    const res: any = await jwt.verify(token, publicKey);
+    const { iat, exp, ...claims }: any = { ...res };
+    return { outcome: true, token, claims };
   } catch (err) {
     console.log(err);
     return { outcome: false, err };

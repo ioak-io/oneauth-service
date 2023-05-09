@@ -3,6 +3,7 @@ import { validateMandatoryFields } from "../../lib/validation";
 
 import { userSchema, userCollection } from "../user/model";
 import * as Helper from "./helper";
+import * as UserRoleHelper from "../user/role/helper";
 import { getCollection } from "../../lib/dbutils";
 
 const selfRealm = 100;
@@ -43,6 +44,15 @@ export const signup = async (req: any, res: any, realm?: number) => {
   Helper.sendEmailConfirmationLink(outcome._id, realm);
   res.status(200);
   res.send(outcome);
+  res.end();
+};
+
+export const getPermissions = async (req: any, res: any, realm?: number) => {
+  console.log(req.user);
+  const userId = req.user.user_id;
+  const data = await Helper.getPermissions(userId, realm);
+  res.status(200);
+  res.send(data);
   res.end();
 };
 
@@ -139,8 +149,15 @@ export const signin = async (req: any, res: any, realm?: number) => {
     return;
   }
   res.status(200);
-  const access_token = await Helper.getAccessToken(refresh_token, realm);
-  res.send({ token_type: "Bearer", access_token, refresh_token });
+  const access_token: any = await Helper.getAccessToken(refresh_token, realm);
+  const decodedToken = await Helper.decodeToken(access_token);
+  res.send({
+    token_type: "Bearer",
+    access_token,
+    refresh_token,
+    claims: decodedToken?.claims,
+    permissions: await Helper.getPermissions(user._id, realm)
+  });
   res.end();
 };
 
@@ -163,8 +180,10 @@ export const issueToken = async (req: any, res: any, realm?: number) => {
       res.end();
       return;
     }
+    const decodedToken = await Helper.decodeToken(access_token);
+    const permissions = await Helper.getPermissions(decodedToken?.claims?.user_id, realm);
     res.status(200);
-    res.send({ token_type: "Bearer", access_token });
+    res.send({ token_type: "Bearer", access_token, claims: decodedToken.claims, permissions });
     res.end();
     return;
   }

@@ -8,15 +8,31 @@ const { getCollection } = require("../../../lib/dbutils");
 
 export const getUserRoles = async (realm?: number) => {
   const model = getCollection(userRoleCollection, userRoleSchema, realm);
+  const roles = await RoleHelper.getRoles(realm);
+  const roleMap: any = {};
+  roles.forEach((item: any) => roleMap[item._id] = item.name);
 
-  return await model.find();
+  const permissions = await model.find();
+  const permissionMap: any = {};
+  permissions.forEach((item: any) => {
+    const permissionMapForUser = permissionMap[item.userId] || {};
+    const roleName = roleMap[item.roleId] || item.roleId;
+    if (permissionMapForUser[roleName]) {
+      if (!isEmptyOrSpaces(item.scope)) { permissionMapForUser[roleName].push(item.scope); }
+    } else {
+      permissionMapForUser[roleName] = isEmptyOrSpaces(item.scope) ? [] : [item.scope];
+    }
+    permissionMap[item.userId] = permissionMapForUser;
+  })
+
+  return permissionMap;
 };
 
 export const modifyUserRole = async (
   payload: {
     action: "ADD" | "REMOVE",
-    userId: string,
-    userEmail: string,
+    userId?: string,
+    userEmail?: string,
     roleName: string,
     scope: string | null
   },
@@ -35,16 +51,16 @@ export const modifyUserRole = async (
 
   const roleId = role._id;
 
-  if (!isEmptyOrSpaces(payload.userId) && !mongoose.Types.ObjectId.isValid(payload.userId)) {
+  if (!isEmptyOrSpaces(payload.userId) && !mongoose.Types.ObjectId.isValid(payload.userId || '')) {
     return { "message": `User ID [${payload.userId}] is invalid` };
   }
 
   let user = null;
 
   if (!isEmptyOrSpaces(payload.userId)) {
-    user = await UserHelper.getUserById(payload.userId, realm);
+    user = await UserHelper.getUserById(payload.userId || '', realm);
   } else {
-    user = await UserHelper.getUserByEmail(payload.userEmail, realm);
+    user = await UserHelper.getUserByEmail(payload.userEmail || '', realm);
   }
 
   if (!user && !isEmptyOrSpaces(payload.userId)) {
@@ -85,3 +101,26 @@ export const deleteUserRole = async (_id: string, realm?: number) => {
   await model.remove({ _id });
   return { message: "Role removed from user", }
 };
+
+
+export const getPermissionsByUserId = async (
+  userId: string,
+  realm?: number
+) => {
+  const roles = await RoleHelper.getRoles(realm);
+  const roleMap: any = {};
+  roles.forEach((item: any) => roleMap[item._id] = item.name);
+  const model = getCollection(userRoleCollection, userRoleSchema, realm);
+  const permissions = await model.find({ userId });
+  const permissionMap: any = {};
+  permissions.forEach((item: any) => {
+    const roleName = roleMap[item.roleId] || item.roleId;
+    if (permissionMap[roleName]) {
+      if (!isEmptyOrSpaces(item.scope)) { permissionMap[roleName].push(item.scope); }
+    } else {
+      permissionMap[roleName] = isEmptyOrSpaces(item.scope) ? [] : [item.scope];
+    }
+  })
+
+  return permissionMap;
+}

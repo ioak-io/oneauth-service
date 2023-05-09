@@ -9,6 +9,18 @@ export const getApikeys = async (
   return await model.find({});
 };
 
+export const getApikeyByValue = async (
+  token: string,
+  realm?: number
+) => {
+  const model = getCollection(apikeyCollection, apikeySchema, realm);
+  const response = await model.find({token});
+  if (response.length > 0) {
+    return response[0];
+  }
+  return null;
+};
+
 export const addApiKey = async (
   realm?: number
 ) => {
