@@ -9,7 +9,7 @@ import { initializeSequences } from "./startup";
 import { apiDocumentation } from "./docs/apidoc";
 const express = require("express");
 const cors = require("cors");
-const swaggerUi = require('swagger-ui-express');
+// const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
 
 var ApiRoute = require("./route");
@@ -26,7 +26,7 @@ mongoose.pluralize(undefined);
 const app = express();
 
 // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(apiDocumentation));
+// app.use('/docs', swaggerUi.serve, swaggerUi.setup(apiDocumentation));
 
 app.use(cors());
 
