@@ -39,6 +39,8 @@ export const modifyUserRole = async (
   realm?: number,
 ) => {
 
+  console.log(payload);
+
   if (payload.action !== 'ADD' && payload.action !== 'REMOVE') {
     return { message: `Invalid role action [${payload.action}]. Supported actions are [ADD | REMOVE]` };
   }

@@ -22,7 +22,7 @@ const selfRealm = 100;
 module.exports = function (router: any) {
   router.post("/:realm/admin/auth/signup", authorizeApiKey, (req: any, res: any) =>
     signup(req, res, req.params.realm));
-  router.post("/:realm/admin/auth/verify-email/resend", authorizeApiKey, (req: any, res: any) =>
+  router.post("/:realm/user/auth/verify-email/resend", (req: any, res: any) =>
     emailVerificationLink(req, res, req.params.realm));
   router.post("/:realm/user/auth/verify-email/:code", (req: any, res: any) =>
     verifyEmail(req, res, req.params.realm));
@@ -34,7 +34,7 @@ module.exports = function (router: any) {
     issueToken(req, res, req.params.realm));
   router.get("/:realm/user/auth/token/decode", authorizeApi, (req: any, res: any) =>
     decodeToken(req, res));
-  router.post("/:realm/admin/auth/reset-password-link", authorizeApiKey, (req: any, res: any) =>
+  router.post("/:realm/user/auth/reset-password-link", (req: any, res: any) =>
     resetPasswordLink(req, res, req.params.realm)
   );
   router.post("/:realm/user/auth/reset-password/:code", (req: any, res: any) =>

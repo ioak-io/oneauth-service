@@ -69,6 +69,7 @@ export const emailVerificationLink = async (req: any, res: any, realm?: number) 
   });
   if (!user) {
     res.status(404);
+    res.send({ error: { message: "User with this user name does not exist" } });
     res.end();
     return;
   }
@@ -276,6 +277,7 @@ export const resetPasswordLink = async (
   });
   if (!user) {
     res.status(404);
+    res.send({ error: { message: "User with this user name does not exist" } });
     res.end();
     return;
   }

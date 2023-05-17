@@ -66,7 +66,8 @@ export const sendEmailConfirmationLink = async (
     html: emailBody,
   });
 
-  return { code, link };
+  return { status: "SUCCESS" };
+  // return { code, link };
 };
 
 export const getPermissions = async (
