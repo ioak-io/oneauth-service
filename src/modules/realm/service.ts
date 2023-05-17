@@ -1,33 +1,27 @@
 import { validateMandatoryFields } from "../../lib/validation";
 import { realmSchema, realmCollection } from "../realm/model";
-import {
-  checkSystemPermission,
-  grantSystemPermission,
-  getPermittedSystemResources,
-} from "../user/role/SystemPermissionService";
 import * as Helper from "./helper";
+import * as UserRoleHelper from "../user/role/helper";
 
 import { getCollection } from "../../lib/dbutils";
 
-const selfRealm = 100;
-
 export const getRealms = async (req: any, res: any) => {
-  const permittedResources = await getPermittedSystemResources({
-    nameList: ["system-admin", "system-user"],
-    user_id: req.user.user_id,
-  });
-  const permittedRealms = permittedResources
-    .filter((item: any) => item.resource_name === "realm")
-    .map((item: any) => item.resource_id);
-  const model = getCollection(selfRealm, realmCollection, realmSchema);
-  const realms = await model.find({ realm: { $in: permittedRealms } });
+  const permissionMap = await UserRoleHelper.getPermissionsByUserId(req.user.user_id);
+  const authorizedRealms = permissionMap['ADMIN'];
+  if (!authorizedRealms || authorizedRealms.length === 0) {
+    res.status(200);
+    res.send([]);
+    res.end();
+  }
+  const model = getCollection(realmCollection, realmSchema);
+  const realms = await model.find({ realm: { $in: authorizedRealms } });
   res.status(200);
   res.send(realms);
   res.end();
 };
 
 export const introspect = async (req: any, res: any) => {
-  const model = getCollection(selfRealm, realmCollection, realmSchema);
+  const model = getCollection(realmCollection, realmSchema);
   const realms = await model.find({});
   res.status(200);
   res.send(realms);
@@ -66,7 +60,7 @@ export const getRealm = async (req: any, res: any) => {
     return;
   }
 
-  const model = getCollection(selfRealm, realmCollection, realmSchema);
+  const model = getCollection(realmCollection, realmSchema);
   const realmResponse = await model.findOne({ realm });
   res.status(200);
   res.send(realmResponse);
@@ -75,35 +69,10 @@ export const getRealm = async (req: any, res: any) => {
 
 export const updateRealm = async (req: any, res: any) => {
   const payload = req.body;
-  if (payload.upload?.logo) {
-    const logoUrl = await Helper.processFileUpload(
-      payload.upload.logo,
-      "logo",
-      req.params.realm
-    );
-    payload.site.logo = logoUrl;
-  }
-  if (payload.upload?.background) {
-    const backgroundUrl = await Helper.processFileUpload(
-      payload.upload.background,
-      "background",
-      req.params.realm
-    );
-    payload.site.background = backgroundUrl;
-  }
   const realm = req.params.realm;
-  if (!validateMandatoryFields(res, payload, ["name", "description"])) {
-    return;
-  }
-
-  if (
-    !(await checkSystemPermission({
-      name: "system-admin",
-      resource_name: "realm",
-      resource_id: realm,
-      user_id: req.user.user_id,
-    }))
-  ) {
+  const permissionMap = await UserRoleHelper.getPermissionsByUserId(req.user.user_id);
+  const authorizedRealms = permissionMap['ADMIN'];
+  if (!authorizedRealms.includes(realm)) {
     res.status(403);
     res.send({
       error: {
@@ -114,11 +83,14 @@ export const updateRealm = async (req: any, res: any) => {
     res.end();
     return;
   }
+  if (!validateMandatoryFields(res, payload, ["name", "description"])) {
+    return;
+  }
 
-  const model = getCollection(selfRealm, realmCollection, realmSchema);
+  const model = getCollection(realmCollection, realmSchema);
   const outcome = await model.updateOne({ realm }, { ...payload, realm });
   res.status(200);
-  res.send({ ...payload, realm });
+  res.send(await model.findOne({realm}));
   res.end();
 };
 
@@ -128,20 +100,14 @@ export const createRealm = async (req: any, res: any) => {
     return;
   }
 
-  const model = getCollection(selfRealm, realmCollection, realmSchema);
+  const model = getCollection(realmCollection, realmSchema);
   const realm = await Helper.generateRealmNumber();
   const outcome = await model.create({ ...payload, realm });
-  await grantSystemPermission({
-    name: "system-admin",
-    user_id: req.user.user_id,
-    resource_name: "realm",
-    resource_id: realm,
-  });
-  await grantSystemPermission({
-    name: "system-user",
-    user_id: req.user.user_id,
-    resource_name: "realm",
-    resource_id: realm,
+  await UserRoleHelper.modifyUserRole({
+    action: "ADD",
+    roleName: "ADMIN",
+    userId: req.user.user_id,
+    scope: outcome.realm.toString()
   });
   res.status(200);
   res.send(outcome);

@@ -14,7 +14,7 @@ export const createSequence = async (data: {
   const nextval = data.nextval || 1;
   let model;
   if (realm) {
-    model = getCollection(realm, sequenceCollection, sequenceSchema);
+    model = getCollection(sequenceCollection, sequenceSchema, realm);
   } else {
     model = getGlobalCollection(sequenceCollection, sequenceSchema);
   }
@@ -49,7 +49,7 @@ export const nextval = async (data: {
   const realm = data.realm || 100;
   let model;
   if (realm) {
-    model = getCollection(realm, sequenceCollection, sequenceSchema);
+    model = getCollection(sequenceCollection, sequenceSchema, realm);
   } else {
     model = getGlobalCollection(sequenceCollection, sequenceSchema);
   }

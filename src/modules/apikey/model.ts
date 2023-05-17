@@ -1,14 +1,14 @@
 var mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
-const systemRoleSchema = new Schema(
+const apikeySchema = new Schema(
   {
-    name: { type: String },
+    token: { type: String },
   },
   { timestamps: true }
 );
 
-const systemRoleCollection = "role-system";
+const apikeyCollection = "apikey";
 
 // module.exports = mongoose.model('bookmarks', articleSchema);
-export { systemRoleSchema, systemRoleCollection };
+export { apikeySchema, apikeyCollection };

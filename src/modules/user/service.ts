@@ -5,8 +5,8 @@ import { getCollection } from "../../lib/dbutils";
 
 const selfRealm = 100;
 
-export const getSystemUsers = async (req: any, res: any) => {
-  const model = getCollection(selfRealm, userCollection, userSchema);
+export const getUser = async (req: any, res: any, realm?: number) => {
+  const model = getCollection(userCollection, userSchema, realm);
   const users = await model.find({});
   res.status(200);
   res.send(users);

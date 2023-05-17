@@ -6,7 +6,6 @@ const realmSchema = new Schema(
     name: { type: String },
     description: { type: String },
     realm: { type: Number },
-    site: { type: Object },
   },
   { timestamps: true }
 );

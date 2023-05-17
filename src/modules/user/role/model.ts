@@ -3,13 +3,11 @@ var mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const userRoleSchema = new Schema(
   {
-    client_id: { type: String },
-    user_id: { type: String },
-    role_id: { type: String },
-    resource_name: { type: String },
-    resource_id: { type: String },
+    userId: { type: String },
+    roleId: { type: String },
+    scope: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true, minimize: false }
 );
 
 const userRoleCollection = "user.role";

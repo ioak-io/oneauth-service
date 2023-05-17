@@ -1,4 +1,4 @@
-import { authorizeApi } from "../../middlewares";
+import { authorizeApi, authorizeApiKey } from "../../middlewares";
 import {
   signin,
   signup,
@@ -14,17 +14,37 @@ import {
   changePassword,
   verifyEmail,
   emailVerificationLink,
+  getPermissions
 } from "./service";
 
 const selfRealm = 100;
 
 module.exports = function (router: any) {
-  router.post("/auth/signup", signup);
-  router.post("/auth/send-verify-email", emailVerificationLink);
-  router.post("/auth/verify-email", verifyEmail);
-  router.post("/auth/authorize", signin);
-  router.post("/auth/token", issueToken);
-  router.get("/auth/token/decode", authorizeApi, decodeToken);
+  router.post("/:realm/admin/auth/signup", authorizeApiKey, (req: any, res: any) =>
+    signup(req, res, req.params.realm));
+  router.post("/:realm/user/auth/verify-email/resend", (req: any, res: any) =>
+    emailVerificationLink(req, res, req.params.realm));
+  router.post("/:realm/user/auth/verify-email/:code", (req: any, res: any) =>
+    verifyEmail(req, res, req.params.realm));
+  router.post("/:realm/user/auth/signin", (req: any, res: any) =>
+    signin(req, res, req.params.realm));
+  router.get("/:realm/user/auth/permission", authorizeApi, (req: any, res: any) =>
+    getPermissions(req, res, req.params.realm));
+  router.post("/:realm/user/auth/token", (req: any, res: any) =>
+    issueToken(req, res, req.params.realm));
+  router.get("/:realm/user/auth/token/decode", authorizeApi, (req: any, res: any) =>
+    decodeToken(req, res));
+  router.post("/:realm/user/auth/reset-password-link", (req: any, res: any) =>
+    resetPasswordLink(req, res, req.params.realm)
+  );
+  router.post("/:realm/user/auth/reset-password/:code", (req: any, res: any) =>
+    resetPassword(req, res, req.params.realm)
+  );
+  router.post("/:realm/user/auth/change-password", authorizeApi, (req: any, res: any) =>
+    changePassword(req, res, req.params.realm)
+  );
+
+
   router.post("/auth/logout", logout);
   router.get("/auth/oa/session/:id", (req: any, res: any) =>
     validateSession(selfRealm, req, res)
@@ -33,43 +53,12 @@ module.exports = function (router: any) {
     deleteSession(selfRealm, req, res)
   );
   router.get("/auth/oa/session/:id/decode", (req: any, res: any) =>
-    decodeSession(selfRealm, req, res)
+    decodeSession(req, res)
   );
   router.post("/auth/oa/reset", (req: any, res: any) =>
     resetPasswordLink(selfRealm, req, res)
   );
   router.post("/auth/oa/reset/:code/verify", (req: any, res: any) =>
     verifyResetCode(selfRealm, req, res)
-  );
-  router.post("/auth/oa/reset/:code/setpassword", (req: any, res: any) =>
-    resetPassword(selfRealm, req, res)
-  );
-  router.post("/auth/oa/changepassword", authorizeApi, (req: any, res: any) =>
-    changePassword(selfRealm, req, res)
-  );
-  // Realm endpoints
-  router.get("/auth/realm/:realm/session/:id", (req: any, res: any) =>
-    validateSession(req.params.realm, req, res)
-  );
-  router.get("/auth/realm/:realm/session/:id/decode", (req: any, res: any) =>
-    decodeSession(req.params.realm, req, res)
-  );
-  router.delete("/auth/realm/:realm/session/:id", (req: any, res: any) =>
-    deleteSession(req.params.realm, req, res)
-  );
-  router.post("/auth/realm/:realm/reset", (req: any, res: any) =>
-    resetPasswordLink(req.params.realm, req, res)
-  );
-  router.post("/auth/realm/:realm/reset/:code/verify", (req: any, res: any) =>
-    verifyResetCode(req.params.realm, req, res)
-  );
-  router.post(
-    "/auth/realm/:realm/reset/:code/setpassword",
-    (req: any, res: any) => resetPassword(req.params.realm, req, res)
-  );
-  router.post(
-    "/auth/realm/:realm/changepassword",
-    authorizeApi,
-    (req: any, res: any) => changePassword(req.params.realm, req, res)
   );
 };
