@@ -12,6 +12,7 @@ export const getRealms = async (req: any, res: any) => {
     res.status(200);
     res.send([]);
     res.end();
+    return;
   }
   const model = getCollection(realmCollection, realmSchema);
   const realms = await model.find({ realm: { $in: authorizedRealms } });
@@ -72,7 +73,7 @@ export const updateRealm = async (req: any, res: any) => {
   const realm = req.params.realm;
   const permissionMap = await UserRoleHelper.getPermissionsByUserId(req.user.user_id);
   const authorizedRealms = permissionMap['ADMIN'];
-  if (!authorizedRealms.includes(realm)) {
+  if (!authorizedRealms?.includes(realm)) {
     res.status(403);
     res.send({
       error: {
