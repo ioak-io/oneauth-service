@@ -238,7 +238,7 @@ export const resetPasswordLink = async (user: any, realm?: number) => {
 
   const appRoot = process.cwd();
   const emailBodyTemplate = fs.readFileSync(
-    appRoot + "\\src\\emailtemplate\\ResetPasswordEmailTemplate.html"
+    appRoot + "/src/emailtemplate/ResetPasswordEmailTemplate.html"
   );
 
   const emailBody = convertMessage(emailBodyTemplate.toString(), [
