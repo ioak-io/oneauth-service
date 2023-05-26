@@ -233,7 +233,7 @@ export const resetPasswordLink = async (user: any, realm?: number) => {
   if (!realm) {
     resetLink += `/api-internal/auth/reset-password/${resetCode}`;
   } else {
-    resetLink += `/api/${realm}/auth/reset-password/${resetCode}`;
+    resetLink += `/api/${realm}/user/auth/reset-password/${resetCode}`;
   }
 
   const appRoot = process.cwd();
