@@ -47,6 +47,13 @@ export const signup = async (req: any, res: any, realm?: number) => {
   res.end();
 };
 
+export const getUserList = async (req: any, res: any, realm?: number) => {
+  const data = await Helper.getUserList(realm);
+  res.status(200);
+  res.send(data);
+  res.end();
+}
+
 export const getPermissions = async (req: any, res: any, realm?: number) => {
   console.log(req.user);
   const userId = req.user.user_id;

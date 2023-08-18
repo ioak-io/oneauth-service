@@ -48,7 +48,7 @@ export const sendEmailConfirmationLink = async (
   if (!realm) {
     link += `/api-internal/auth/verify-email/${code}`;
   } else {
-    link += `/api/${realm}/auth/verify-email/${code}`;
+    link += `/api/${realm}/user/auth/verify-email/${code}`;
   }
 
   const appRoot = process.cwd();
@@ -69,6 +69,19 @@ export const sendEmailConfirmationLink = async (
   return { status: "SUCCESS" };
   // return { code, link };
 };
+
+export const getUserList = async (
+  realm?: number
+) => {
+  const model = getCollection(userCollection, userSchema, realm);
+  const users = await model.find();
+  return users.map((item: any) => {
+    return {
+      ...item._doc
+    }
+  });
+  // return users;
+}
 
 export const getPermissions = async (
   userId: string,

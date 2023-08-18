@@ -23,7 +23,7 @@ module.exports = function (router: any) {
     signup(req, res));
   router.post("/auth/verify-email/resend", (req: any, res: any) =>
     emailVerificationLink(req, res));
-  router.post("/auth/verify-email/:code", (req: any, res: any) =>
+  router.get("/auth/verify-email/:code", (req: any, res: any) =>
     verifyEmail(req, res));
   router.post("/auth/signin", (req: any, res: any) =>
     signin(req, res));

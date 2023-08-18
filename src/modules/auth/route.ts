@@ -14,7 +14,8 @@ import {
   changePassword,
   verifyEmail,
   emailVerificationLink,
-  getPermissions
+  getPermissions,
+  getUserList
 } from "./service";
 
 const selfRealm = 100;
@@ -22,9 +23,11 @@ const selfRealm = 100;
 module.exports = function (router: any) {
   router.post("/:realm/admin/auth/signup", authorizeApiKey, (req: any, res: any) =>
     signup(req, res, req.params.realm));
+  router.get("/:realm/admin/auth/user-list", authorizeApiKey, (req: any, res: any) =>
+    getUserList(req, res, req.params.realm));
   router.post("/:realm/user/auth/verify-email/resend", (req: any, res: any) =>
     emailVerificationLink(req, res, req.params.realm));
-  router.post("/:realm/user/auth/verify-email/:code", (req: any, res: any) =>
+  router.get("/:realm/user/auth/verify-email/:code", (req: any, res: any) =>
     verifyEmail(req, res, req.params.realm));
   router.post("/:realm/user/auth/signin", (req: any, res: any) =>
     signin(req, res, req.params.realm));
