@@ -18,8 +18,6 @@ var InternalApiRoute = require("./route_internal");
 const databaseUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017";
 
 mongoose.connect(databaseUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
 });
 mongoose.pluralize(undefined);
 
