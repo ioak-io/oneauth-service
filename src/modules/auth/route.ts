@@ -12,6 +12,7 @@ import {
   verifyResetCode,
   resetPassword,
   changePassword,
+  updateProfile,
   verifyEmail,
   emailVerificationLink,
   getPermissions,
@@ -45,6 +46,9 @@ module.exports = function (router: any) {
   );
   router.post("/:realm/user/auth/change-password", authorizeApi, (req: any, res: any) =>
     changePassword(req, res, req.params.realm)
+  );
+  router.post("/:realm/user/auth/update-profile", authorizeApi, (req: any, res: any) =>
+    updateProfile(req, res, req.params.realm)
   );
 
 

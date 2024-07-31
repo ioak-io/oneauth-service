@@ -15,7 +15,7 @@ export const signup = async (req: any, res: any, realm?: number) => {
       "email",
       "password",
       "given_name",
-      "family_name"
+      "family_name",
     ])
   ) {
     return;
@@ -52,7 +52,7 @@ export const getUserList = async (req: any, res: any, realm?: number) => {
   res.status(200);
   res.send(data);
   res.end();
-}
+};
 
 export const getPermissions = async (req: any, res: any, realm?: number) => {
   console.log(req.user);
@@ -63,7 +63,11 @@ export const getPermissions = async (req: any, res: any, realm?: number) => {
   res.end();
 };
 
-export const emailVerificationLink = async (req: any, res: any, realm?: number) => {
+export const emailVerificationLink = async (
+  req: any,
+  res: any,
+  realm?: number
+) => {
   const payload = req.body;
   if (!validateMandatoryFields(res, payload, ["email"])) {
     return;
@@ -81,9 +85,7 @@ export const emailVerificationLink = async (req: any, res: any, realm?: number) 
     return;
   }
   if (!user.email_verified) {
-    const outcome = await Helper.sendEmailConfirmationLink(
-      user._id, realm
-    );
+    const outcome = await Helper.sendEmailConfirmationLink(user._id, realm);
     res.status(200);
     res.send(outcome);
     res.end();
@@ -146,9 +148,7 @@ export const signin = async (req: any, res: any, realm?: number) => {
     return;
   }
 
-  const { session_id, refresh_token } = await Helper.createSession(
-    user, realm
-  );
+  const { session_id, refresh_token } = await Helper.createSession(user, realm);
 
   if (payload.response_type === "code") {
     res.status(200);
@@ -164,24 +164,22 @@ export const signin = async (req: any, res: any, realm?: number) => {
     access_token,
     refresh_token,
     claims: decodedToken?.claims,
-    permissions: await Helper.getPermissions(user._id, realm)
+    permissions: await Helper.getPermissions(user._id, realm),
   });
   res.end();
 };
 
 export const issueToken = async (req: any, res: any, realm?: number) => {
   const payload = req.body;
-  if (
-    !validateMandatoryFields(res, payload, [
-      "grant_type",
-      "refresh_token",
-    ])
-  ) {
+  if (!validateMandatoryFields(res, payload, ["grant_type", "refresh_token"])) {
     return;
   }
 
   if (payload.grant_type === "refresh_token") {
-    const access_token = await Helper.getAccessToken(payload.refresh_token, realm);
+    const access_token = await Helper.getAccessToken(
+      payload.refresh_token,
+      realm
+    );
     if (!access_token) {
       res.status(400);
       res.send({ error: { message: "Refresh token invalid or expired" } });
@@ -189,9 +187,17 @@ export const issueToken = async (req: any, res: any, realm?: number) => {
       return;
     }
     const decodedToken = await Helper.decodeToken(access_token);
-    const permissions = await Helper.getPermissions(decodedToken?.claims?.user_id, realm);
+    const permissions = await Helper.getPermissions(
+      decodedToken?.claims?.user_id,
+      realm
+    );
     res.status(200);
-    res.send({ token_type: "Bearer", access_token, claims: decodedToken.claims, permissions });
+    res.send({
+      token_type: "Bearer",
+      access_token,
+      claims: decodedToken.claims,
+      permissions,
+    });
     res.end();
     return;
   }
@@ -268,11 +274,7 @@ export const decodeSession = async (req: any, res: any) => {
   res.end();
 };
 
-export const resetPasswordLink = async (
-  req: any,
-  res: any,
-  realm?: number,
-) => {
+export const resetPasswordLink = async (req: any, res: any, realm?: number) => {
   const payload = req.body;
   if (!validateMandatoryFields(res, payload, ["email"])) {
     return;
@@ -288,9 +290,7 @@ export const resetPasswordLink = async (
     res.end();
     return;
   }
-  const { resetCode, resetLink } = await Helper.resetPasswordLink(
-    user, realm
-  );
+  const { resetCode, resetLink } = await Helper.resetPasswordLink(user, realm);
   res.status(200);
   res.send({ resetCode, resetLink });
   res.end();
@@ -357,5 +357,33 @@ export const changePassword = async (req: any, res: any, realm?: number) => {
 
   res.status(200);
   res.send("Password updated");
+  res.end();
+};
+
+export const updateProfile = async (req: any, res: any, realm?: number) => {
+  const payload = req.body;
+  const model = getCollection(userCollection, userSchema, realm);
+  const user: any = await model.findOne({ _id: req.user.user_id });
+  if (!user) {
+    res.status(404);
+    res.end();
+    return;
+  }
+  const {
+    _id,
+    id,
+    email,
+    name,
+    email_verified,
+    type,
+    hash,
+    createdAt,
+    updatedAt,
+    ...updatedValues
+  }: any = { ...payload };
+  const outcome = await model.updateOne({ _id: user._id }, updatedValues);
+
+  res.status(200);
+  res.send(Object.keys(updatedValues));
   res.end();
 };
