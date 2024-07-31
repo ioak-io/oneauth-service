@@ -12,6 +12,7 @@ import {
   verifyResetCode,
   resetPassword,
   changePassword,
+  updateProfile,
   verifyEmail,
   emailVerificationLink,
 } from "./service";
@@ -39,6 +40,9 @@ module.exports = function (router: any) {
   );
   router.post("/auth/change-password", authorizeApi, (req: any, res: any) =>
     changePassword(req, res)
+  );
+  router.post("/auth/update-profile", authorizeApi, (req: any, res: any) =>
+    updateProfile(req, res)
   );
 
 
