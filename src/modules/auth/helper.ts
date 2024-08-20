@@ -16,25 +16,27 @@ import {
 import { getCollection } from "../../lib/dbutils";
 import { sendMail, convertMessage } from "../../lib/mailutils";
 import { userCollection, userSchema } from "../user/model";
-import * as UserRoleHelper from '../user/role/helper';
-import * as RoleHelper from '../role/helper';
+import * as UserRoleHelper from "../user/role/helper";
+import * as RoleHelper from "../role/helper";
 import { isEmptyOrSpaces } from "../../lib/Utils";
 
 const selfRealm = 100;
 // const appUrl = process.env.APP_URL || "http://localhost:3010";
 const oneauthApiUrl = process.env.ONEAUTH_API || "http://localhost:4010";
 
-export const sendEmailConfirmationLink = async (
-  userId: string,
-  realm?: number
-) => {
-  const model = getCollection(userCollection, userSchema, realm);
-  const user = await model.findOne({ _id: userId });
+export const sendEmailConfirmationLink = async (data: {
+  userId: string;
+  realm?: number;
+  emailConfirmationPageLink?: string;
+  userDisplayName: string;
+}) => {
+  const model = getCollection(userCollection, userSchema, data.realm);
+  const user = await model.findOne({ _id: data.userId });
 
   const confirmemailModel = getCollection(
     confirmemailCollection,
     confirmemailSchema,
-    realm
+    data.realm
   );
   const deleteResponse = await confirmemailModel.deleteOne({
     userId: user?.id,
@@ -45,10 +47,12 @@ export const sendEmailConfirmationLink = async (
     code,
   });
   let link = oneauthApiUrl;
-  if (!realm) {
+  if (data.emailConfirmationPageLink) {
+    link = `${data.emailConfirmationPageLink}code=${code}`;
+  } else if (!data.realm) {
     link += `/api-internal/auth/verify-email/${code}`;
   } else {
-    link += `/api/${realm}/user/auth/verify-email/${code}`;
+    link += `/api/${data.realm}/user/auth/verify-email/${code}`;
   }
 
   const appRoot = process.cwd();
@@ -58,6 +62,7 @@ export const sendEmailConfirmationLink = async (
 
   const emailBody = convertMessage(emailBodyTemplate.toString(), [
     { name: "TEMPLATE_AUTH_URL", value: link },
+    { name: "TEMPLATE_USER_DISPLAY_NAME", value: data.userDisplayName },
   ]);
 
   sendMail({
@@ -70,28 +75,23 @@ export const sendEmailConfirmationLink = async (
   // return { code, link };
 };
 
-export const getUserList = async (
-  realm?: number
-) => {
+export const getUserList = async (realm?: number) => {
   const model = getCollection(userCollection, userSchema, realm);
   const users = await model.find();
   return users.map((item: any) => {
     return {
-      ...item._doc
-    }
+      ...item._doc,
+    };
   });
   // return users;
-}
+};
 
-export const getPermissions = async (
-  userId: string,
-  realm?: number
-) => {
+export const getPermissions = async (userId: string, realm?: number) => {
   const roles = await RoleHelper.getRoles(realm);
   const roleMap: any = {};
-  roles.forEach((item: any) => roleMap[item._id] = item.name);
+  roles.forEach((item: any) => (roleMap[item._id] = item.name));
   return await UserRoleHelper.getPermissionsByUserId(userId, realm);
-}
+};
 
 export const verifyEmail = async (code: string, realm?: number) => {
   const confirmemailModel = getCollection(
@@ -104,18 +104,16 @@ export const verifyEmail = async (code: string, realm?: number) => {
     return false;
   }
   const model = getCollection(userCollection, userSchema, realm);
-  const res = await model.updateOne(
-    { _id: link.userId },
-    { email_verified: true }
-  );
-  await confirmemailModel.deleteOne({ code });
-  return res.nModified === 1;
+  const res = await confirmemailModel.deleteOne({ code });
+  if (res.deletedCount === 1) {
+    await model.updateOne({ _id: link.userId }, { email_verified: true });
+  }
+  return res.deletedCount === 1;
 };
 
 export const createSession = async (user: any, realm?: number) => {
   const session_id = uuidv4();
-  const model = getCollection(sessionCollection, sessionSchema,
-    realm);
+  const model = getCollection(sessionCollection, sessionSchema, realm);
   const claims = {
     user_id: user.id,
     given_name: user.given_name,
@@ -124,7 +122,7 @@ export const createSession = async (user: any, realm?: number) => {
     nickname: user.nickname,
     email: user.email,
     type: user.type,
-    permissions: await UserRoleHelper.getPermissionsByUserId(user.id, realm)
+    permissions: await UserRoleHelper.getPermissionsByUserId(user.id, realm),
   };
   const appRoot = process.cwd();
   const privateKey = fs.readFileSync(appRoot + "/private.pem");
@@ -230,23 +228,29 @@ export const getHash = async (password: string) => {
   return await bcrypt.hash(password, salt);
 };
 
-export const resetPasswordLink = async (user: any, realm?: number) => {
+export const resetPasswordLink = async (data: {
+  user: any;
+  realm?: number;
+  resetPasswordPageLink?: string;
+}) => {
   const resetPasswordModel = getCollection(
     resetpasswordCollection,
     resetpasswordSchema,
-    realm
+    data.realm
   );
-  const deleteResponse = resetPasswordModel.deleteOne({ userId: user.id });
+  await resetPasswordModel.deleteOne({ userId: data.user.id });
   const resetCode = uuidv4();
   resetPasswordModel.create({
-    userId: user.id,
+    userId: data.user.id,
     resetCode,
   });
   let resetLink = oneauthApiUrl;
-  if (!realm) {
+  if (data.resetPasswordPageLink) {
+    resetLink = `${data.resetPasswordPageLink}code=${resetCode}`;
+  } else if (!data.realm) {
     resetLink += `/api-internal/auth/reset-password/${resetCode}`;
   } else {
-    resetLink += `/api/${realm}/user/auth/reset-password/${resetCode}`;
+    resetLink += `/api/${data.realm}/user/auth/reset-password/${resetCode}`;
   }
 
   const appRoot = process.cwd();
@@ -256,10 +260,11 @@ export const resetPasswordLink = async (user: any, realm?: number) => {
 
   const emailBody = convertMessage(emailBodyTemplate.toString(), [
     { name: "TEMPLATE_AUTH_URL", value: resetLink },
+    { name: "TEMPLATE_USER_DISPLAY_NAME", value: data.user.name },
   ]);
 
   sendMail({
-    to: user.email,
+    to: data.user.email,
     subject: "Oneauth reset password",
     html: emailBody,
   });
@@ -306,4 +311,19 @@ export const resetPassword = async (
   });
 
   return true;
+};
+
+export const validateResetPasswordLink = async (
+  resetCode: string,
+  realm?: number
+) => {
+  const resetPasswordModel = getCollection(
+    resetpasswordCollection,
+    resetpasswordSchema,
+    realm
+  );
+  const resetLink = await resetPasswordModel.findOne({
+    resetCode,
+  });
+  return !!resetLink;
 };

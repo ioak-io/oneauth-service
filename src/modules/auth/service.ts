@@ -9,7 +9,7 @@ import { getCollection } from "../../lib/dbutils";
 const selfRealm = 100;
 
 export const signup = async (req: any, res: any, realm?: number) => {
-  const payload = req.body;
+  const { emailConfirmationPageLink, ...payload } = req.body;
   if (
     !validateMandatoryFields(res, payload, [
       "email",
@@ -41,7 +41,12 @@ export const signup = async (req: any, res: any, realm?: number) => {
     hash: await Helper.getHash(payload.password),
   };
   const outcome = await model.create(userData);
-  Helper.sendEmailConfirmationLink(outcome._id, realm);
+  Helper.sendEmailConfirmationLink({
+    userId: outcome._id,
+    realm,
+    emailConfirmationPageLink,
+    userDisplayName: outcome.name,
+  });
   res.status(200);
   res.send(outcome);
   res.end();
@@ -68,7 +73,7 @@ export const emailVerificationLink = async (
   res: any,
   realm?: number
 ) => {
-  const payload = req.body;
+  const { emailConfirmationPageLink, ...payload } = req.body;
   if (!validateMandatoryFields(res, payload, ["email"])) {
     return;
   }
@@ -85,7 +90,12 @@ export const emailVerificationLink = async (
     return;
   }
   if (!user.email_verified) {
-    const outcome = await Helper.sendEmailConfirmationLink(user._id, realm);
+    const outcome = await Helper.sendEmailConfirmationLink({
+      userId: user._id,
+      realm,
+      userDisplayName: user.name,
+      emailConfirmationPageLink,
+    });
     res.status(200);
     res.send(outcome);
     res.end();
@@ -275,7 +285,7 @@ export const decodeSession = async (req: any, res: any) => {
 };
 
 export const resetPasswordLink = async (req: any, res: any, realm?: number) => {
-  const payload = req.body;
+  const { resetPasswordPageLink, ...payload } = req.body;
   if (!validateMandatoryFields(res, payload, ["email"])) {
     return;
   }
@@ -290,7 +300,11 @@ export const resetPasswordLink = async (req: any, res: any, realm?: number) => {
     res.end();
     return;
   }
-  const { resetCode, resetLink } = await Helper.resetPasswordLink(user, realm);
+  const { resetCode, resetLink } = await Helper.resetPasswordLink({
+    user,
+    realm,
+    resetPasswordPageLink,
+  });
   res.status(200);
   res.send({ resetCode, resetLink });
   res.end();
@@ -322,6 +336,32 @@ export const resetPassword = async (req: any, res: any, realm?: number) => {
   res.status(200);
   res.send({
     message: "Password updated",
+  });
+  res.end();
+};
+
+export const validateResetPasswordLink = async (
+  req: any,
+  res: any,
+  realm?: number
+) => {
+  const payload = req.body;
+  if (!validateMandatoryFields(res, payload, ["code"])) {
+    return;
+  }
+  const outcome = await Helper.validateResetPasswordLink(
+    req.params.code,
+    realm
+  );
+  if (!outcome) {
+    res.status(404);
+    res.send({ error: { message: "Invalid password reset link" } });
+    res.end();
+    return;
+  }
+  res.status(200);
+  res.send({
+    message: "Password reset link valid",
   });
   res.end();
 };
